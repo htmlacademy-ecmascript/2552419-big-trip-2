@@ -44,9 +44,64 @@ export default class TripPresenter {
     const eventEditView = new EventEditView();
     render(eventEditView, eventListElement);
 
-    for (let i = 0; i < 3; i++) {
-      const eventItemView = new EventItemView();
+    const eventData = [
+      {
+        date: '2019-03-18',
+        displayDate: 'MAR 18',
+        type: 'taxi',
+        typeIcon: 'taxi.png',
+        title: 'Taxi Amsterdam',
+        startTime: '2019-03-18T10:30',
+        displayStartTime: '10:30',
+        endTime: '2019-03-18T11:00',
+        displayEndTime: '11:00',
+        duration: '30M',
+        price: 20,
+        offers: [
+          { title: 'Order Uber', price: 20 }
+        ],
+        isFavorite: true
+      },
+      {
+        date: '2019-03-18',
+        displayDate: 'MAR 18',
+        type: 'flight',
+        typeIcon: 'flight.png',
+        title: 'Flight Chamonix',
+        startTime: '2019-03-18T12:25',
+        displayStartTime: '12:25',
+        endTime: '2019-03-18T13:35',
+        displayEndTime: '13:35',
+        duration: '01H 10M',
+        price: 160,
+        offers: [
+          { title: 'Add luggage', price: 50 },
+          { title: 'Switch to comfort', price: 80 }
+        ],
+        isFavorite: false
+      },
+      {
+        date: '2019-03-18',
+        displayDate: 'MAR 18',
+        type: 'drive',
+        typeIcon: 'drive.png',
+        title: 'Drive Chamonix',
+        startTime: '2019-03-18T14:30',
+        displayStartTime: '14:30',
+        endTime: '2019-03-18T16:05',
+        displayEndTime: '16:05',
+        duration: '01H 35M',
+        price: 160,
+        offers: [
+          { title: 'Rent a car', price: 200 }
+        ],
+        isFavorite: true
+      }
+    ];
+
+    eventData.forEach((event) => {
+      const eventItemView = new EventItemView(event);
       render(eventItemView, eventListElement);
-    }
+    });
   }
 }
