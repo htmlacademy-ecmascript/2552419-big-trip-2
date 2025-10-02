@@ -1,4 +1,3 @@
-
 import TripPresenter from './presenter/trip-presenter.js';
 
 const tripContainer = document.querySelector('.page-body');
