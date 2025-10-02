@@ -1,14 +1,7 @@
-import './style.css';
+import '../markup/css/style.css';
+import TripPresenter from './presenter/trip-presenter.js';
 
-console.log('Приложение "Большое путешествие" запущено!');
+const tripContainer = document.querySelector('.page-body');
+const tripPresenter = new TripPresenter({ container: tripContainer });
 
-// Основной код приложения
-document.addEventListener('DOMContentLoaded', () => {
-    const app = document.getElementById('app');
-    if (app) {
-        app.innerHTML = `
-            <h1>Большое путешествие</h1>
-            <p>Приложение готово к разработке!</p>
-        `;
-    }
-});
+tripPresenter.init();
