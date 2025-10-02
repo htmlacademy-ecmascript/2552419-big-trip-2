@@ -1,11 +1,15 @@
 {
-  "extends": ["htmlacademy/vanilla"],
-  "rules": {
-    "no-console": "off",
-    "eol-last": ["error", "always"]
-  },
+  "extends": ["eslint:recommended"],
   "env": {
     "browser": true,
     "es2021": true
+  },
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-console": "warn"
   }
 }
