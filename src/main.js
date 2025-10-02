@@ -1,4 +1,3 @@
-import '../markup/css/style.css';
 import TripPresenter from './presenter/trip-presenter.js';
 
 const tripContainer = document.querySelector('.page-body');
