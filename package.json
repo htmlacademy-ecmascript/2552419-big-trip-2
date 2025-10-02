@@ -4,11 +4,13 @@
   "description": "Большое путешествие",
   "main": "src/main.js",
   "scripts": {
-    "build": "webpack --mode production",
-    "start": "webpack serve --mode development --open",
-    "dev": "webpack --mode development",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "build": "webpack --mode production",
+  "start": "webpack serve --mode development --open",
+  "dev": "webpack --mode development",
+  "lint": "eslint src/ --ext .js",
+  "lint:fix": "eslint src/ --ext .js --fix",
+  "test": "echo \"Error: no test specified\" && exit 1"
+},
   "browserslist": [
     "last 2 version",
     "> 1%",

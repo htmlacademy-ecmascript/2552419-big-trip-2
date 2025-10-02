@@ -1,0 +1,25 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": ["eslint:recommended"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-console": "off",
+    "no-unused-vars": "warn",
+    "no-use-before-define": "error",
+    "prefer-arrow-callback": "error",
+    "quotes": ["error", "single"],
+    "semi": ["error", "always"],
+    "space-infix-ops": "error",
+    "eqeqeq": ["error", "always"],
+    "no-var": "error",
+    "brace-style": ["error", "1tbs"],
+    "curly": ["error", "all"]
+  }
+}
