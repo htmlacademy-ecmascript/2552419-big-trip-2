@@ -3,12 +3,17 @@
 Thumbs.db
 
 # Файлы редактора
-.idea
+.idea/
 *.sublime*
-.vscode
+.vscode/
 
 # Вспомогательные файлы
 *.log*
-node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Собранные файлы (допишите самостоятельно)
+# Зависимости и сборка
+node_modules/
+build/
+dist/
