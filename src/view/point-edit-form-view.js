@@ -1,7 +1,6 @@
-import AbstractView from './abstract-view.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { DateMap, huminazeDate } from '../util.js';
 import { POINT_TYPES, POINT_DESTINATIONS } from '../const.js';
-
 
 const createPointOffer = (offer, checkedOffers) => {
   const { id: offerId, title, price } = offer;
@@ -105,7 +104,7 @@ const createPointEditFormTemplate = (point, pointOffers, checkedOffers, destinat
           <button class="event__reset-btn" type="reset">${isNew ? 'Cancel' : 'Delete'}</button>
           ${!isNew ? `
             <button class="event__rollup-btn" type="button">
-              <span class="visually-hidden">Open event</span>
+              <span class="visually-hidden">Close event</span>
             </button>
           ` : ''}
         </header>
@@ -122,17 +121,76 @@ const createPointEditFormTemplate = (point, pointOffers, checkedOffers, destinat
   `;
 };
 
-export default class PointEditFormView extends AbstractView {
-  constructor({ point, offers, checkedOffers, destination, isNew = false }) {
+export default class PointEditFormView extends AbstractStatefulView {
+  #point = null;
+  #offers = null;
+  #checkedOffers = null;
+  #destination = null;
+  #isNew = false;
+  #handleFormSubmit = null;
+  #handleCloseClick = null;
+
+  constructor({ point, offers, checkedOffers, destination, isNew = false, onSubmit, onClose }) {
     super();
-    this.point = point;
-    this.offers = offers;
-    this.checkedOffers = checkedOffers;
-    this.destination = destination;
-    this.isNew = isNew;
+    this.#point = point;
+    this.#offers = offers;
+    this.#checkedOffers = checkedOffers;
+    this.#destination = destination;
+    this.#isNew = isNew;
+    this.#handleFormSubmit = onSubmit;
+    this.#handleCloseClick = onClose;
+
+    this._setState({
+      point: this.#point,
+      offers: this.#offers,
+      checkedOffers: this.#checkedOffers,
+      destination: this.#destination
+    });
+
+    this._restoreHandlers();
   }
 
   get template() {
-    return createPointEditFormTemplate(this.point, this.offers, this.checkedOffers, this.destination, this.isNew);
+    return createPointEditFormTemplate(
+      this._state.point,
+      this._state.offers,
+      this._state.checkedOffers,
+      this._state.destination,
+      this.#isNew
+    );
+  }
+
+  _restoreHandlers() {
+    if (!this.#isNew) {
+      this.element.querySelector('.event__rollup-btn')
+        .addEventListener('click', this.#closeClickHandler);
+    }
+
+    this.element.querySelector('form')
+      .addEventListener('submit', this.#formSubmitHandler);
+
+    document.addEventListener('keydown', this.#escKeyDownHandler);
+  }
+
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFormSubmit();
+  };
+
+  #closeClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleCloseClick();
+  };
+
+  #escKeyDownHandler = (evt) => {
+    if (evt.key === 'Escape' || evt.key === 'Esc') {
+      evt.preventDefault();
+      this.#handleCloseClick();
+    }
+  };
+
+  removeElement() {
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
+    super.removeElement();
   }
 }

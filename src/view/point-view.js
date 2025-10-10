@@ -1,4 +1,4 @@
-import AbstractView from './abstract-view.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import { DateMap, getDateDifference, huminazeDate } from '../util.js';
 
 const createPointTemplate = (point, offers, destination) => {
@@ -55,14 +55,28 @@ const createPointTemplate = (point, offers, destination) => {
 };
 
 export default class PointView extends AbstractView {
-  constructor({ point, offers, destination }) {
+  #point = null;
+  #offers = null;
+  #destination = null;
+  #handleEditClick = null;
+
+  constructor({ point, offers, destination, onEditClick }) {
     super();
-    this.point = point;
-    this.offers = offers;
-    this.destination = destination;
+    this.#point = point;
+    this.#offers = offers;
+    this.#destination = destination;
+    this.#handleEditClick = onEditClick;
+
+    this.element.querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#editClickHandler);
   }
 
   get template() {
-    return createPointTemplate(this.point, this.offers, this.destination);
+    return createPointTemplate(this.#point, this.#offers, this.#destination);
   }
+
+  #editClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleEditClick();
+  };
 }
