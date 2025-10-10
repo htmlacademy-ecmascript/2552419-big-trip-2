@@ -1,6 +1,6 @@
-import {createElement} from '../render.js';
+import { createElement } from '../render.js';
 
-class AbstractView {
+export default class AbstractView {
   #element = null;
 
   constructor() {
@@ -9,7 +9,7 @@ class AbstractView {
     }
   }
 
-  getElement() {
+  get element() {
     if (!this.#element) {
       this.#element = createElement(this.template);
     }
@@ -24,5 +24,3 @@ class AbstractView {
     this.#element = null;
   }
 }
-
-export default AbstractView;
