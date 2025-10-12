@@ -161,15 +161,19 @@ export default class PointEditFormView extends AbstractStatefulView {
   }
 
   _restoreHandlers() {
+  
     if (!this.#isNew) {
       this.element.querySelector('.event__rollup-btn')
         .addEventListener('click', this.#closeClickHandler);
     }
 
+
+    this.element.querySelector('.event__reset-btn')
+      .addEventListener('click', this.#closeClickHandler);
+
+
     this.element.querySelector('form')
       .addEventListener('submit', this.#formSubmitHandler);
-
-    document.addEventListener('keydown', this.#escKeyDownHandler);
   }
 
   #formSubmitHandler = (evt) => {
@@ -181,16 +185,4 @@ export default class PointEditFormView extends AbstractStatefulView {
     evt.preventDefault();
     this.#handleCloseClick();
   };
-
-  #escKeyDownHandler = (evt) => {
-    if (evt.key === 'Escape' || evt.key === 'Esc') {
-      evt.preventDefault();
-      this.#handleCloseClick();
-    }
-  };
-
-  removeElement() {
-    document.removeEventListener('keydown', this.#escKeyDownHandler);
-    super.removeElement();
-  }
 }
