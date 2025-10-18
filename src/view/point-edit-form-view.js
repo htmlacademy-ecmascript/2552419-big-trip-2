@@ -1,3 +1,4 @@
+
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { DateMap, huminazeDate } from '../util.js';
 import { POINT_TYPES, POINT_DESTINATIONS } from '../const.js';
@@ -129,8 +130,9 @@ export default class PointEditFormView extends AbstractStatefulView {
   #isNew = false;
   #handleFormSubmit = null;
   #handleCloseClick = null;
+  #handleDeleteClick = null;
 
-  constructor({ point, offers, checkedOffers, destination, isNew = false, onSubmit, onClose }) {
+  constructor({ point, offers, checkedOffers, destination, isNew = false, onSubmit, onClose, onDelete }) {
     super();
     this.#point = point;
     this.#offers = offers;
@@ -139,6 +141,7 @@ export default class PointEditFormView extends AbstractStatefulView {
     this.#isNew = isNew;
     this.#handleFormSubmit = onSubmit;
     this.#handleCloseClick = onClose;
+    this.#handleDeleteClick = onDelete;
 
     this._setState({
       point: this.#point,
@@ -161,16 +164,17 @@ export default class PointEditFormView extends AbstractStatefulView {
   }
 
   _restoreHandlers() {
-  
     if (!this.#isNew) {
       this.element.querySelector('.event__rollup-btn')
         .addEventListener('click', this.#closeClickHandler);
     }
 
-
-    this.element.querySelector('.event__reset-btn')
-      .addEventListener('click', this.#closeClickHandler);
-
+    const resetButton = this.element.querySelector('.event__reset-btn');
+    if (this.#isNew) {
+      resetButton.addEventListener('click', this.#closeClickHandler);
+    } else {
+      resetButton.addEventListener('click', this.#deleteClickHandler);
+    }
 
     this.element.querySelector('form')
       .addEventListener('submit', this.#formSubmitHandler);
@@ -184,5 +188,10 @@ export default class PointEditFormView extends AbstractStatefulView {
   #closeClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleCloseClick();
+  };
+
+  #deleteClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleDeleteClick();
   };
 }

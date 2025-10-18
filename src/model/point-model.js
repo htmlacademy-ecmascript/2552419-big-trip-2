@@ -1,22 +1,17 @@
+
 import { mockPoints } from '../mock/points.js';
 import { mockOffers } from '../mock/offers.js';
 import { mockDestinations } from '../mock/destinations.js';
 
 export default class PointsModel {
-  #points = mockPoints;
-  #offers = mockOffers;
-  #destinations = mockDestinations;
+  #points = [];
+  #offers = [];
+  #destinations = [];
 
-  get points() {
-    return this.#points;
-  }
-
-  get offers() {
-    return this.#offers;
-  }
-
-  get destinations() {
-    return this.#destinations;
+  constructor() {
+    this.#points = [...mockPoints];
+    this.#offers = [...mockOffers];
+    this.#destinations = [...mockDestinations];
   }
 
   getPoints() {
@@ -32,8 +27,7 @@ export default class PointsModel {
   }
 
   getOffersByType(type) {
-    const allOffers = this.getOffers();
-    return allOffers.find((offer) => offer.type === type) || { offers: [] };
+    return this.#offers.find((offer) => offer.type === type) || { offers: [] };
   }
 
   getOffersById(type, offersIds) {
@@ -42,7 +36,19 @@ export default class PointsModel {
   }
 
   getDestinationById(id) {
-    const allDestinations = this.getDestinations();
-    return allDestinations.find((destination) => destination.id === id);
+    return this.#destinations.find((destination) => destination.id === id);
+  }
+
+  calculateTotalCost() {
+    return this.#points.reduce((total, point) => {
+      const pointOffers = this.getOffersById(point.type, point.offers);
+      const offersCost = pointOffers.reduce((sum, offer) => sum + offer.price, 0);
+      return total + point.basePrice + offersCost;
+    }, 0);
+  }
+
+  deletePoint(pointId) {
+    this.#points = this.#points.filter(point => point.id !== pointId);
+    return this.#points;
   }
 }
