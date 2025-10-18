@@ -1,42 +1,36 @@
+
 import { mockOffers } from './offers.js';
 import { mockDestinations } from './destinations.js';
+import { getRandomInteger, getRandomArrElem } from '../util.js';
+import { POINT_TYPES } from '../const.js';
 
-const mockPoints = [
-  {
-    id: '1',
-    basePrice: 20,
-    dateFrom: '2019-03-18T10:30:00.000Z',
-    dateTo: '2019-03-18T11:00:00.000Z',
-    destination: mockDestinations[0].id,
-    isFavorite: true,
-    type: 'taxi',
-    offers: [mockOffers.find(o => o.type === 'taxi').offers[0].id]
-  },
-  {
-    id: '2',
-    basePrice: 160,
-    dateFrom: '2019-03-18T12:25:00.000Z',
-    dateTo: '2019-03-18T13:35:00.000Z',
-    destination: mockDestinations[2].id,
-    isFavorite: false,
-    type: 'flight',
-    offers: [
-      mockOffers.find(o => o.type === 'flight').offers[0].id,
-      mockOffers.find(o => o.type === 'flight').offers[1].id
-    ]
-  },
-  {
-    id: '3',
-    basePrice: 160,
-    dateFrom: '2019-03-18T14:30:00.000Z',
-    dateTo: '2019-03-18T16:05:00.000Z',
-    destination: mockDestinations[2].id,
-    isFavorite: true,
-    type: 'drive',
-    offers: [mockOffers.find(o => o.type === 'drive').offers[0].id]
-  }
-];
+const generateRandomPoint = (id) => {
+  const type = getRandomArrElem(POINT_TYPES);
+  const destination = getRandomArrElem(mockDestinations);
+  const basePrice = getRandomInteger(20, 500);
 
-const getRandomPoint = () => mockPoints[Math.floor(Math.random() * mockPoints.length)];
+  const baseDate = new Date();
+  const dateFrom = new Date(baseDate.getTime() + getRandomInteger(0, 7) * 24 * 60 * 60 * 1000);
+  const dateTo = new Date(dateFrom.getTime() + getRandomInteger(1, 12) * 60 * 60 * 1000);
 
-export { mockPoints, getRandomPoint };
+  const typeOffers = mockOffers.find(o => o.type === type)?.offers || [];
+  const offers = typeOffers
+    .slice(0, getRandomInteger(0, 3))
+    .map(offer => offer.id);
+
+  return {
+    id: id.toString(),
+    basePrice,
+    dateFrom: dateFrom.toISOString(),
+    dateTo: dateTo.toISOString(),
+    destination: destination.id,
+    isFavorite: Math.random() > 0.7,
+    type,
+    offers
+  };
+};
+
+
+const mockPoints = Array.from({ length: 15 }, (_, i) => generateRandomPoint(i + 1));
+
+export { mockPoints };
