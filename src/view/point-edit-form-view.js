@@ -34,7 +34,8 @@ const createPointOffers = (pointOffers, checkedOffers) => {
   `;
 };
 
-const createPointEditFormTemplate = (point, pointOffers, checkedOffers, destination, isNew = false) => {
+const createPointEditFormTemplate = (state) => {
+  const { point, offers, checkedOffers, destination, isNew } = state;
   const { id, type, basePrice, dateFrom, dateTo } = point;
   const { name, description, pictures } = destination;
 
@@ -110,7 +111,7 @@ const createPointEditFormTemplate = (point, pointOffers, checkedOffers, destinat
           ` : ''}
         </header>
         <section class="event__details">
-          ${createPointOffers(pointOffers, checkedOffers)}
+          ${createPointOffers(offers, checkedOffers)}
           <section class="event__section event__section--destination">
             <h3 class="event__section-title event__section-title--destination">Destination</h3>
             <p class="event__destination-description">${description}</p>
@@ -123,44 +124,31 @@ const createPointEditFormTemplate = (point, pointOffers, checkedOffers, destinat
 };
 
 export default class PointEditFormView extends AbstractStatefulView {
-  #point = null;
-  #offers = null;
-  #checkedOffers = null;
-  #destination = null;
-  #isNew = false;
   #handleFormSubmit = null;
   #handleCloseClick = null;
   #handleDeleteClick = null;
+  #isNew = false;
 
   constructor({ point, offers, checkedOffers, destination, isNew = false, onSubmit, onClose, onDelete }) {
     super();
-    this.#point = point;
-    this.#offers = offers;
-    this.#checkedOffers = checkedOffers;
-    this.#destination = destination;
     this.#isNew = isNew;
     this.#handleFormSubmit = onSubmit;
     this.#handleCloseClick = onClose;
     this.#handleDeleteClick = onDelete;
 
     this._setState({
-      point: this.#point,
-      offers: this.#offers,
-      checkedOffers: this.#checkedOffers,
-      destination: this.#destination
+      point: { ...point },
+      offers: { ...offers },
+      checkedOffers: [...checkedOffers],
+      destination: { ...destination },
+      isNew
     });
 
     this._restoreHandlers();
   }
 
   get template() {
-    return createPointEditFormTemplate(
-      this._state.point,
-      this._state.offers,
-      this._state.checkedOffers,
-      this._state.destination,
-      this.#isNew
-    );
+    return createPointEditFormTemplate(this._state);
   }
 
   _restoreHandlers() {
@@ -178,11 +166,30 @@ export default class PointEditFormView extends AbstractStatefulView {
 
     this.element.querySelector('form')
       .addEventListener('submit', this.#formSubmitHandler);
+
+    this.element.querySelector('.event__type-toggle')
+      .addEventListener('click', this.#typeToggleHandler);
+
+    this.element.querySelectorAll('.event__type-input')
+      .forEach((input) => {
+        input.addEventListener('change', this.#typeChangeHandler);
+      });
+
+    this.element.querySelector('.event__input--destination')
+      .addEventListener('change', this.#destinationChangeHandler);
+
+    this.element.querySelector('.event__input--price')
+      .addEventListener('change', this.#priceChangeHandler);
+
+    this.element.querySelectorAll('.event__offer-checkbox')
+      .forEach((checkbox) => {
+        checkbox.addEventListener('change', this.#offerChangeHandler);
+      });
   }
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit();
+    this.#handleFormSubmit(this._state.point);
   };
 
   #closeClickHandler = (evt) => {
@@ -193,5 +200,66 @@ export default class PointEditFormView extends AbstractStatefulView {
   #deleteClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleDeleteClick();
+  };
+
+  #typeToggleHandler = (evt) => {
+    evt.preventDefault();
+    const typeList = this.element.querySelector('.event__type-list');
+    typeList.classList.toggle('visually-hidden');
+  };
+
+  #typeChangeHandler = (evt) => {
+    evt.preventDefault();
+    this.updateElement({
+      point: {
+        ...this._state.point,
+        type: evt.target.value
+      },
+      offers: this._state.offers
+    });
+  };
+
+  #destinationChangeHandler = (evt) => {
+    evt.preventDefault();
+
+    this.updateElement({
+      destination: {
+        ...this._state.destination,
+        name: evt.target.value
+      }
+    });
+  };
+
+  #priceChangeHandler = (evt) => {
+    evt.preventDefault();
+    this.updateElement({
+      point: {
+        ...this._state.point,
+        basePrice: parseInt(evt.target.value, 10) || 0
+      }
+    });
+  };
+
+  #offerChangeHandler = (evt) => {
+    evt.preventDefault();
+    const offerId = evt.target.name.replace('event-offer-', '');
+    let updatedOffers = [...this._state.checkedOffers];
+
+    if (evt.target.checked) {
+      const offerToAdd = this._state.offers.offers.find(offer => offer.id === offerId);
+      if (offerToAdd) {
+        updatedOffers.push(offerToAdd);
+      }
+    } else {
+      updatedOffers = updatedOffers.filter(offer => offer.id !== offerId);
+    }
+
+    this.updateElement({
+      checkedOffers: updatedOffers,
+      point: {
+        ...this._state.point,
+        offers: updatedOffers.map(offer => offer.id)
+      }
+    });
   };
 }
