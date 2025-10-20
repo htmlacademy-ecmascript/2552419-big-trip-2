@@ -1,4 +1,3 @@
-
 import AbstractView from '../framework/view/abstract-view.js';
 
 const createFilterItemTemplate = (filter, isChecked, isDisabled) => {
@@ -38,7 +37,7 @@ export default class FiltersView extends AbstractView {
     super();
     this.#filters = filters;
 
-    
+
     this._callback = {};
   }
 

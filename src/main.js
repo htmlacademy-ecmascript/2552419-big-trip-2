@@ -1,23 +1,20 @@
 import Presenter from './presenter/presenter.js';
-import PointsModel from './model/point-model.js';
-
+import TripModel from './model/trip-model.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-
   const tripEventsContainer = document.querySelector('.trip-events');
   const tripMainContainer = document.querySelector('.trip-main');
   const filtersContainer = document.querySelector('.trip-controls__filters');
 
   if (!tripEventsContainer) {
-
+    console.error('Trip events container not found');
     return;
   }
 
   if (!tripMainContainer) {
-
+    console.error('Trip main container not found');
     return;
   }
-
 
   let tripInfoContainer = document.querySelector('.trip-main__trip-info');
   if (!tripInfoContainer) {
@@ -25,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
     tripInfoContainer.className = 'trip-main__trip-info trip-info';
     tripMainContainer.insertBefore(tripInfoContainer, tripMainContainer.firstChild);
   }
-
 
   let actualFiltersContainer = filtersContainer;
   if (!actualFiltersContainer) {
@@ -37,12 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  const pointsModel = new PointsModel();
+  const tripModel = new TripModel();
   const presenter = new Presenter(
     tripEventsContainer,
     tripInfoContainer,
     actualFiltersContainer,
-    pointsModel
+    tripModel
   );
 
   presenter.init();

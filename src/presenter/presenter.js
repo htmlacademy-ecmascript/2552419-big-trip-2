@@ -1,5 +1,6 @@
 import { render, remove } from '../framework/render.js';
-import { getFiltersData } from '../util.js';
+import { getFiltersData, sortPoints, LOADING_DELAY } from '../util.js';
+import { SortType } from '../const.js';
 import SortingView from '../view/sorting-view.js';
 import PointsListView from '../view/points-list-view.js';
 import LoadingView from '../view/loading-view.js';
@@ -25,6 +26,7 @@ export default class Presenter {
   #pointPresenters = new Map();
   #isLoading = true;
   #currentFilter = 'everything';
+  #currentSortType = SortType.DAY;
 
   constructor(tripEventsContainer, tripInfoContainer, filtersContainer, pointsModel) {
     if (!tripEventsContainer || !tripInfoContainer || !filtersContainer || !pointsModel) {
@@ -35,10 +37,6 @@ export default class Presenter {
     this.#tripInfoContainer = tripInfoContainer;
     this.#filtersContainer = filtersContainer;
     this.#pointsModel = pointsModel;
-
-    this.#sortingComponent = new SortingView();
-    this.#pointsListComponent = new PointsListView();
-    this.#loadingComponent = new LoadingView();
   }
 
   init() {
@@ -51,7 +49,7 @@ export default class Presenter {
         this.#isLoading = false;
         this.#points = [...this.#pointsModel.getPoints()];
         this.#renderTripEvents();
-      }, 1000);
+      }, LOADING_DELAY);
     } catch (error) {
       console.error('Error initializing presenter:', error);
     }
@@ -91,6 +89,7 @@ export default class Presenter {
   #renderLoading() {
     try {
       this.#clearTripEvents();
+      this.#loadingComponent = new LoadingView();
       render(this.#loadingComponent, this.#tripEventsContainer);
     } catch (error) {
       console.error('Error rendering loading:', error);
@@ -110,15 +109,19 @@ export default class Presenter {
     try {
       if (this.#sortingComponent) {
         remove(this.#sortingComponent);
+        this.#sortingComponent = null;
       }
       if (this.#pointsListComponent) {
         remove(this.#pointsListComponent);
+        this.#pointsListComponent = null;
       }
       if (this.#loadingComponent) {
         remove(this.#loadingComponent);
+        this.#loadingComponent = null;
       }
       if (this.#emptyListComponent) {
         remove(this.#emptyListComponent);
+        this.#emptyListComponent = null;
       }
     } catch (error) {
       console.error('Error clearing trip events:', error);
@@ -146,6 +149,11 @@ export default class Presenter {
 
   #renderSorting() {
     try {
+      this.#sortingComponent = new SortingView({
+        currentSortType: this.#currentSortType,
+        onSortTypeChange: this.#handleSortTypeChange
+      });
+
       render(this.#sortingComponent, this.#tripEventsContainer);
     } catch (error) {
       console.error('Error rendering sorting:', error);
@@ -154,6 +162,7 @@ export default class Presenter {
 
   #renderPointsList() {
     try {
+      this.#pointsListComponent = new PointsListView();
       render(this.#pointsListComponent, this.#tripEventsContainer);
     } catch (error) {
       console.error('Error rendering points list:', error);
@@ -162,9 +171,10 @@ export default class Presenter {
 
   #renderPoints(points) {
     try {
+      const sortedPoints = sortPoints(points, this.#currentSortType);
       const pointsListElement = this.#pointsListComponent.element;
 
-      points.forEach((point) => {
+      sortedPoints.forEach((point) => {
         this.#renderPoint(point, pointsListElement);
       });
     } catch (error) {
@@ -218,6 +228,20 @@ export default class Presenter {
     }
   }
 
+  #handleSortTypeChange = (sortType) => {
+    try {
+      if (this.#currentSortType === sortType) {
+        return;
+      }
+
+      this.#currentSortType = sortType;
+      this.#clearPoints();
+      this.#renderTripEvents();
+    } catch (error) {
+      console.error('Error handling sort type change:', error);
+    }
+  };
+
   #handleFilterChange = (filterType) => {
     try {
       this.#currentFilter = filterType;
@@ -231,7 +255,6 @@ export default class Presenter {
   #handlePointChange = (updatedPoint, isDeleting = false) => {
     try {
       if (isDeleting) {
-
         this.#pointsModel.deletePoint(updatedPoint.id);
         this.#points = this.#pointsModel.getPoints();
 
@@ -241,7 +264,6 @@ export default class Presenter {
           this.#pointPresenters.delete(updatedPoint.id);
         }
       } else {
-
         this.#pointsModel.updatePoint(updatedPoint);
         this.#points = this.#pointsModel.getPoints();
 
@@ -254,13 +276,11 @@ export default class Presenter {
       this.#updateTripInfo();
       this.#updateFilters();
 
-
       if (isDeleting) {
         this.#renderTripEvents();
       }
     } catch (error) {
       console.error('Error handling point change:', error);
-      
     }
   };
 
@@ -296,8 +316,8 @@ export default class Presenter {
 
   destroy() {
     try {
-      this.#pointPresenters.forEach((presenter) => presenter.destroy());
-      this.#pointPresenters.clear();
+      this.#clearPoints();
+      this.#clearTripEvents();
     } catch (error) {
       console.error('Error destroying presenter:', error);
     }
