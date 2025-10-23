@@ -1,3 +1,4 @@
+
 const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 
 const POINT_DESTINATIONS = ['Amsterdam', 'Geneva', 'Chamonix'];
