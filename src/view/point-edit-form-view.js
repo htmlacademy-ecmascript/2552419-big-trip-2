@@ -1,4 +1,3 @@
-
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { DateMap, huminazeDate } from '../util.js';
 import { POINT_TYPES, POINT_DESTINATIONS } from '../const.js';

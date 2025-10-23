@@ -1,4 +1,3 @@
-
 import { mockOffers } from './offers.js';
 import { mockDestinations } from './destinations.js';
 import { getRandomInteger, getRandomArrElem } from '../util.js';

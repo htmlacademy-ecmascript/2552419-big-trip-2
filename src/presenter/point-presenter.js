@@ -5,7 +5,7 @@ import { isEscapeKey } from '../util.js';
 
 export default class PointPresenter {
   #container = null;
-  #pointsModel = null;
+  #tripModel = null;
   #handleDataChange = null;
   #handleModeChange = null;
 
@@ -13,13 +13,13 @@ export default class PointPresenter {
   #pointEditComponent = null;
   #point = null;
 
-  constructor(container, pointsModel, onDataChange, onModeChange) {
-    if (!container || !pointsModel || !onDataChange || !onModeChange) {
+  constructor(container, tripModel, onDataChange, onModeChange) {
+    if (!container || !tripModel || !onDataChange || !onModeChange) {
       throw new Error('PointPresenter: Required dependencies not provided');
     }
 
     this.#container = container;
-    this.#pointsModel = pointsModel;
+    this.#tripModel = tripModel;
     this.#handleDataChange = onDataChange;
     this.#handleModeChange = onModeChange;
   }
@@ -31,8 +31,8 @@ export default class PointPresenter {
       const prevPointComponent = this.#pointComponent;
       const prevPointEditComponent = this.#pointEditComponent;
 
-      const offers = this.#pointsModel.getOffersById(point.type, point.offers);
-      const destination = this.#pointsModel.getDestinationById(point.destination);
+      const offers = this.#tripModel.getOffersById(point.type, point.offers);
+      const destination = this.#tripModel.getDestinationById(point.destination);
 
       if (!destination) {
         console.warn(`Destination not found for point ${point.id}`);
@@ -49,7 +49,7 @@ export default class PointPresenter {
 
       this.#pointEditComponent = new PointEditFormView({
         point: this.#point,
-        offers: this.#pointsModel.getOffersByType(point.type),
+        offers: this.#tripModel.getOffersByType(point.type),
         checkedOffers: offers,
         destination: destination,
         isNew: false,

@@ -1,3 +1,4 @@
+
 const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 
 const POINT_DESTINATIONS = ['Amsterdam', 'Geneva', 'Chamonix'];
@@ -17,28 +18,45 @@ const POINT_DESCRIPTIONS = [
   'Chamonix-Mont-Blanc (usually shortened to Chamonix) is a resort area near the junction of France, Switzerland and Italy. At the base of Mont Blanc, the highest summit in the Alps, it is renowned for its skiing.'
 ];
 
-const OffersMap = new Map([
-  ['Order Uber', 'uber'],
-  ['Business class', 'business'],
-  ['Extra luggage', 'luggage'],
-  ['Comfort seat', 'comfort'],
-  ['First class', 'first'],
-  ['Meal included', 'meal'],
-  ['Cabin upgrade', 'cabin'],
-  ['All inclusive', 'all'],
-  ['Rent a car', 'car'],
-  ['Extra insurance', 'insurance'],
-  ['Add luggage', 'luggage'],
-  ['Switch to comfort', 'comfort'],
-  ['Add meal', 'meal'],
-  ['Choose seats', 'seats'],
-  ['Travel by train', 'train'],
-  ['Add breakfast', 'breakfast'],
-  ['Late checkout', 'checkout'],
-  ['Book tickets', 'tickets'],
-  ['Lunch in city', 'lunch'],
-  ['Wine tasting', 'wine'],
-  ['Dessert menu', 'dessert']
-]);
+const SortType = {
+  DAY: 'day',
+  EVENT: 'event',
+  TIME: 'time',
+  PRICE: 'price',
+  OFFER: 'offer'
+};
 
-export { POINT_TYPES, POINT_DESTINATIONS, POINT_OFFERS, POINT_DESCRIPTIONS, OffersMap };
+const SortTypeLabels = {
+  [SortType.DAY]: 'Day',
+  [SortType.EVENT]: 'Event',
+  [SortType.TIME]: 'Time',
+  [SortType.PRICE]: 'Price',
+  [SortType.OFFER]: 'Offers'
+};
+
+const EnabledSortType = {
+  [SortType.DAY]: true,
+  [SortType.EVENT]: false,
+  [SortType.TIME]: true,
+  [SortType.PRICE]: true,
+  [SortType.OFFER]: false
+};
+
+const SortTypeOrder = [
+  SortType.DAY,
+  SortType.EVENT,
+  SortType.TIME,
+  SortType.PRICE,
+  SortType.OFFER
+];
+
+export {
+  POINT_TYPES,
+  POINT_DESTINATIONS,
+  POINT_OFFERS,
+  POINT_DESCRIPTIONS,
+  SortType,
+  SortTypeLabels,
+  EnabledSortType,
+  SortTypeOrder
+};

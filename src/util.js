@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import duration from 'dayjs/plugin/duration';
+import { SortType } from './const.js';
 
 dayjs.extend(utc);
 dayjs.extend(duration);
@@ -11,6 +12,9 @@ const DateMap = new Map([
   ['HoursMinutes', 'HH:mm'],
   ['DateTime', 'DD/MM/YY HH:mm']
 ]);
+
+const DEFAULT_POINTS_COUNT = 0;
+const LOADING_DELAY = 1000;
 
 const huminazeDate = (date, format) => date ? dayjs(date).utc().format(format) : '';
 
@@ -32,11 +36,41 @@ const getDateDifference = (start, end) => {
   return `${minutes}M`;
 };
 
-const getRandomInteger = (min, max) => Math.floor(Math.random() * (Math.floor(max) - Math.ceil(min) + 1) + Math.ceil(min));
+const getRandomInteger = (min, max) =>
+  Math.floor(Math.random() * (Math.floor(max) - Math.ceil(min) + 1) + Math.ceil(min));
 
-const getRandomArrElem = (array) => array[Math.floor(Math.random() * array.length)];
+const getRandomArrElem = (array) =>
+  array[Math.floor(Math.random() * array.length)];
 
 const isEscapeKey = (evt) => evt.key === 'Escape' || evt.key === 'Esc';
+
+
+const sortPointsByDay = (pointA, pointB) =>
+  dayjs(pointA.dateFrom).diff(dayjs(pointB.dateFrom));
+
+const sortPointsByTime = (pointA, pointB) => {
+  const durationA = dayjs(pointA.dateTo).diff(dayjs(pointA.dateFrom));
+  const durationB = dayjs(pointB.dateTo).diff(dayjs(pointB.dateFrom));
+  return durationB - durationA;
+};
+
+const sortPointsByPrice = (pointA, pointB) =>
+  pointB.basePrice - pointA.basePrice;
+
+const sortPoints = (points, sortType) => {
+  const sortedPoints = [...points];
+
+  switch (sortType) {
+    case SortType.TIME:
+      return sortedPoints.sort(sortPointsByTime);
+    case SortType.PRICE:
+      return sortedPoints.sort(sortPointsByPrice);
+    case SortType.DAY:
+    default:
+      return sortedPoints.sort(sortPointsByDay);
+  }
+};
+
 
 const filterPoints = {
   everything: (points) => points,
@@ -69,5 +103,11 @@ export {
   huminazeDate,
   isEscapeKey,
   filterPoints,
-  getFiltersData
+  getFiltersData,
+  sortPoints,
+  sortPointsByDay,
+  sortPointsByTime,
+  sortPointsByPrice,
+  DEFAULT_POINTS_COUNT,
+  LOADING_DELAY
 };
