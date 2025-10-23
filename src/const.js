@@ -1,4 +1,3 @@
-
 const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 
 const POINT_DESTINATIONS = ['Amsterdam', 'Geneva', 'Chamonix'];
@@ -20,19 +19,35 @@ const POINT_DESCRIPTIONS = [
 
 const SortType = {
   DAY: 'day',
+  EVENT: 'event',
   TIME: 'time',
   PRICE: 'price',
-  EVENT: 'event',
   OFFER: 'offer'
+};
+
+const SortTypeLabels = {
+  [SortType.DAY]: 'Day',
+  [SortType.EVENT]: 'Event',
+  [SortType.TIME]: 'Time',
+  [SortType.PRICE]: 'Price',
+  [SortType.OFFER]: 'Offers'
 };
 
 const EnabledSortType = {
   [SortType.DAY]: true,
+  [SortType.EVENT]: false,
   [SortType.TIME]: true,
   [SortType.PRICE]: true,
-  [SortType.EVENT]: false,
   [SortType.OFFER]: false
 };
+
+const SortTypeOrder = [
+  SortType.DAY,
+  SortType.EVENT,
+  SortType.TIME,
+  SortType.PRICE,
+  SortType.OFFER
+];
 
 export {
   POINT_TYPES,
@@ -40,5 +55,7 @@ export {
   POINT_OFFERS,
   POINT_DESCRIPTIONS,
   SortType,
-  EnabledSortType
+  SortTypeLabels,
+  EnabledSortType,
+  SortTypeOrder
 };
