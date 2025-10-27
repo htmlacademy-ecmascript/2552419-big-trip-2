@@ -25,150 +25,110 @@ export default class PointPresenter {
   }
 
   init(point) {
-    try {
-      this.#point = point;
+    this.#point = point;
 
-      const prevPointComponent = this.#pointComponent;
-      const prevPointEditComponent = this.#pointEditComponent;
+    const prevPointComponent = this.#pointComponent;
+    const prevPointEditComponent = this.#pointEditComponent;
 
-      const offers = this.#tripModel.getOffersById(point.type, point.offers);
-      const destination = this.#tripModel.getDestinationById(point.destination);
+    const offers = this.#tripModel.getOffersById(point.type, point.offers);
+    const destination = this.#tripModel.getDestinationById(point.destination);
+    const allDestinations = this.#tripModel.getDestinations();
+    const allOffers = this.#tripModel.getOffers();
 
-      if (!destination) {
-        console.warn(`Destination not found for point ${point.id}`);
-        return;
-      }
-
-      this.#pointComponent = new PointView({
-        point: this.#point,
-        offers: offers,
-        destination: destination,
-        onEditClick: this.#handleEditClick,
-        onFavoriteClick: this.#handleFavoriteClick
-      });
-
-      this.#pointEditComponent = new PointEditFormView({
-        point: this.#point,
-        offers: this.#tripModel.getOffersByType(point.type),
-        checkedOffers: offers,
-        destination: destination,
-        isNew: false,
-        onSubmit: this.#handleFormSubmit,
-        onClose: this.#handleCloseClick,
-        onDelete: this.#handleDeleteClick
-      });
-
-      if (prevPointComponent === null || prevPointEditComponent === null) {
-        render(this.#pointComponent, this.#container);
-        return;
-      }
-
-      if (this.#container.contains(prevPointComponent.element)) {
-        replace(this.#pointComponent, prevPointComponent);
-      }
-
-      if (this.#container.contains(prevPointEditComponent.element)) {
-        replace(this.#pointEditComponent, prevPointEditComponent);
-      }
-
-      remove(prevPointComponent);
-      remove(prevPointEditComponent);
-    } catch (error) {
-      console.error(`Error initializing point presenter for point ${point?.id}:`, error);
+    if (!destination) {
+      console.warn(`Destination not found for point ${point.id}`);
+      return;
     }
+
+    this.#pointComponent = new PointView({
+      point: this.#point,
+      offers: offers,
+      destination: destination,
+      onEditClick: this.#handleEditClick,
+      onFavoriteClick: this.#handleFavoriteClick
+    });
+
+    this.#pointEditComponent = new PointEditFormView({
+      point: this.#point,
+      offers: this.#tripModel.getOffersByType(point.type),
+      checkedOffers: offers,
+      destination: destination,
+      allDestinations: allDestinations,
+      allOffers: allOffers,
+      isNew: false,
+      onSubmit: this.#handleFormSubmit,
+      onClose: this.#handleCloseClick,
+      onDelete: this.#handleDeleteClick
+    });
+
+    if (prevPointComponent === null || prevPointEditComponent === null) {
+      render(this.#pointComponent, this.#container);
+      return;
+    }
+
+    if (this.#container.contains(prevPointComponent.element)) {
+      replace(this.#pointComponent, prevPointComponent);
+    }
+
+    if (this.#container.contains(prevPointEditComponent.element)) {
+      replace(this.#pointEditComponent, prevPointEditComponent);
+    }
+
+    remove(prevPointComponent);
+    remove(prevPointEditComponent);
   }
 
   destroy() {
-    try {
-      remove(this.#pointComponent);
-      remove(this.#pointEditComponent);
-      document.removeEventListener('keydown', this.#escKeyDownHandler);
-    } catch (error) {
-      console.error('Error destroying point presenter:', error);
-    }
+    remove(this.#pointComponent);
+    remove(this.#pointEditComponent);
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
   resetView() {
-    try {
-      if (this.#pointEditComponent && this.#container.contains(this.#pointEditComponent.element)) {
-        this.#replaceFormToPoint();
-      }
-    } catch (error) {
-      console.error('Error resetting point view:', error);
+    if (this.#pointEditComponent && this.#container.contains(this.#pointEditComponent.element)) {
+      this.#replaceFormToPoint();
     }
   }
 
   #replacePointToForm() {
-    try {
-      this.#handleModeChange();
-      replace(this.#pointEditComponent, this.#pointComponent);
-      document.addEventListener('keydown', this.#escKeyDownHandler);
-    } catch (error) {
-      console.error('Error replacing point with form:', error);
-    }
+    this.#handleModeChange();
+    replace(this.#pointEditComponent, this.#pointComponent);
+    document.addEventListener('keydown', this.#escKeyDownHandler);
   }
 
   #replaceFormToPoint() {
-    try {
-      replace(this.#pointComponent, this.#pointEditComponent);
-      document.removeEventListener('keydown', this.#escKeyDownHandler);
-    } catch (error) {
-      console.error('Error replacing form with point:', error);
-    }
+    replace(this.#pointComponent, this.#pointEditComponent);
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
   #escKeyDownHandler = (evt) => {
-    try {
-      if (isEscapeKey(evt)) {
-        evt.preventDefault();
-        this.#replaceFormToPoint();
-      }
-    } catch (error) {
-      console.error('Error handling escape key:', error);
+    if (isEscapeKey(evt)) {
+      evt.preventDefault();
+      this.#replaceFormToPoint();
     }
   };
 
   #handleEditClick = () => {
-    try {
-      this.#replacePointToForm();
-    } catch (error) {
-      console.error('Error handling edit click:', error);
-    }
+    this.#replacePointToForm();
   };
 
   #handleFavoriteClick = () => {
-    try {
-      this.#handleDataChange({
-        ...this.#point,
-        isFavorite: !this.#point.isFavorite
-      });
-    } catch (error) {
-      console.error('Error handling favorite click:', error);
-    }
+    this.#handleDataChange({
+      ...this.#point,
+      isFavorite: !this.#point.isFavorite
+    });
   };
 
   #handleFormSubmit = (point) => {
-    try {
-      this.#handleDataChange(point);
-      this.#replaceFormToPoint();
-    } catch (error) {
-      console.error('Error handling form submit:', error);
-    }
+    this.#handleDataChange(point);
+    this.#replaceFormToPoint();
   };
 
   #handleCloseClick = () => {
-    try {
-      this.#replaceFormToPoint();
-    } catch (error) {
-      console.error('Error handling close click:', error);
-    }
+    this.#replaceFormToPoint();
   };
 
   #handleDeleteClick = () => {
-    try {
-      this.#handleDataChange(this.#point, true);
-    } catch (error) {
-      console.error('Error handling delete click:', error);
-    }
+    this.#handleDataChange(this.#point, true);
   };
 }

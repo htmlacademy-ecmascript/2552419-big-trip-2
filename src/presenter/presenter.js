@@ -40,286 +40,205 @@ export default class Presenter {
   }
 
   init() {
-    try {
-      this.#renderTripInfo();
-      this.#renderFilters();
-      this.#renderLoading();
+    this.#renderTripInfo();
+    this.#renderFilters();
+    this.#renderLoading();
 
-      setTimeout(() => {
-        this.#isLoading = false;
-        this.#points = [...this.#pointsModel.getPoints()];
-        this.#renderTripEvents();
-      }, LOADING_DELAY);
-    } catch (error) {
-      console.error('Error initializing presenter:', error);
-    }
+    setTimeout(() => {
+      this.#isLoading = false;
+      this.#points = [...this.#pointsModel.getPoints()];
+      this.#renderTripEvents();
+    }, LOADING_DELAY);
   }
 
   #renderTripInfo() {
-    try {
-      const points = this.#pointsModel.getPoints();
-      const destinations = this.#pointsModel.getDestinations();
-      const totalCost = this.#pointsModel.calculateTotalCost();
+    const points = this.#pointsModel.getPoints();
+    const destinations = this.#pointsModel.getDestinations();
+    const totalCost = this.#pointsModel.calculateTotalCost();
 
-      this.#tripInfoComponent = new TripInfoView({
-        points,
-        destinations,
-        totalCost
-      });
+    this.#tripInfoComponent = new TripInfoView({
+      points,
+      destinations,
+      totalCost
+    });
 
-      render(this.#tripInfoComponent, this.#tripInfoContainer);
-    } catch (error) {
-      console.error('Error rendering trip info:', error);
-    }
+    render(this.#tripInfoComponent, this.#tripInfoContainer);
   }
 
   #renderFilters() {
-    try {
-      const filters = getFiltersData(this.#pointsModel.getPoints());
-      this.#filtersComponent = new FiltersView(filters);
+    const filters = getFiltersData(this.#pointsModel.getPoints());
+    this.#filtersComponent = new FiltersView(filters);
 
-      this.#filtersComponent.setFilterChangeHandler(this.#handleFilterChange);
+    this.#filtersComponent.setFilterChangeHandler(this.#handleFilterChange);
 
-      render(this.#filtersComponent, this.#filtersContainer);
-    } catch (error) {
-      console.error('Error rendering filters:', error);
-    }
+    render(this.#filtersComponent, this.#filtersContainer);
   }
 
   #renderLoading() {
-    try {
-      this.#clearTripEvents();
-      this.#loadingComponent = new LoadingView();
-      render(this.#loadingComponent, this.#tripEventsContainer);
-    } catch (error) {
-      console.error('Error rendering loading:', error);
-    }
+    this.#clearTripEvents();
+    this.#loadingComponent = new LoadingView();
+    render(this.#loadingComponent, this.#tripEventsContainer);
   }
 
   #renderEmptyList(filterType = 'everything') {
-    try {
-      this.#emptyListComponent = new EmptyListView(filterType);
-      render(this.#emptyListComponent, this.#tripEventsContainer);
-    } catch (error) {
-      console.error('Error rendering empty list:', error);
-    }
+    this.#emptyListComponent = new EmptyListView(filterType);
+    render(this.#emptyListComponent, this.#tripEventsContainer);
   }
 
   #clearTripEvents() {
-    try {
-      if (this.#sortingComponent) {
-        remove(this.#sortingComponent);
-        this.#sortingComponent = null;
-      }
-      if (this.#pointsListComponent) {
-        remove(this.#pointsListComponent);
-        this.#pointsListComponent = null;
-      }
-      if (this.#loadingComponent) {
-        remove(this.#loadingComponent);
-        this.#loadingComponent = null;
-      }
-      if (this.#emptyListComponent) {
-        remove(this.#emptyListComponent);
-        this.#emptyListComponent = null;
-      }
-    } catch (error) {
-      console.error('Error clearing trip events:', error);
+    if (this.#sortingComponent) {
+      remove(this.#sortingComponent);
+      this.#sortingComponent = null;
+    }
+    if (this.#pointsListComponent) {
+      remove(this.#pointsListComponent);
+      this.#pointsListComponent = null;
+    }
+    if (this.#loadingComponent) {
+      remove(this.#loadingComponent);
+      this.#loadingComponent = null;
+    }
+    if (this.#emptyListComponent) {
+      remove(this.#emptyListComponent);
+      this.#emptyListComponent = null;
     }
   }
 
   #renderTripEvents() {
-    try {
-      this.#clearTripEvents();
+    this.#clearTripEvents();
 
-      const filteredPoints = this.#getFilteredPoints(this.#currentFilter);
+    const filteredPoints = this.#getFilteredPoints(this.#currentFilter);
 
-      if (filteredPoints.length === 0) {
-        this.#renderEmptyList(this.#currentFilter);
-        return;
-      }
-
-      this.#renderSorting();
-      this.#renderPointsList();
-      this.#renderPoints(filteredPoints);
-    } catch (error) {
-      console.error('Error rendering trip events:', error);
+    if (filteredPoints.length === 0) {
+      this.#renderEmptyList(this.#currentFilter);
+      return;
     }
+
+    this.#renderSorting();
+    this.#renderPointsList();
+    this.#renderPoints(filteredPoints);
   }
 
   #renderSorting() {
-    try {
-      this.#sortingComponent = new SortingView({
-        currentSortType: this.#currentSortType,
-        onSortTypeChange: this.#handleSortTypeChange
-      });
+    this.#sortingComponent = new SortingView({
+      currentSortType: this.#currentSortType,
+      onSortTypeChange: this.#handleSortTypeChange
+    });
 
-      render(this.#sortingComponent, this.#tripEventsContainer);
-    } catch (error) {
-      console.error('Error rendering sorting:', error);
-    }
+    render(this.#sortingComponent, this.#tripEventsContainer);
   }
 
   #renderPointsList() {
-    try {
-      this.#pointsListComponent = new PointsListView();
-      render(this.#pointsListComponent, this.#tripEventsContainer);
-    } catch (error) {
-      console.error('Error rendering points list:', error);
-    }
+    this.#pointsListComponent = new PointsListView();
+    render(this.#pointsListComponent, this.#tripEventsContainer);
   }
 
   #renderPoints(points) {
-    try {
-      const sortedPoints = sortPoints(points, this.#currentSortType);
-      const pointsListElement = this.#pointsListComponent.element;
+    const sortedPoints = sortPoints(points, this.#currentSortType);
+    const pointsListElement = this.#pointsListComponent.element;
 
-      sortedPoints.forEach((point) => {
-        this.#renderPoint(point, pointsListElement);
-      });
-    } catch (error) {
-      console.error('Error rendering points:', error);
-    }
+    sortedPoints.forEach((point) => {
+      this.#renderPoint(point, pointsListElement);
+    });
   }
 
   #renderPoint(point, container) {
-    try {
-      const pointPresenter = new PointPresenter(
-        container,
-        this.#pointsModel,
-        this.#handlePointChange,
-        this.#handleModeChange
-      );
-      pointPresenter.init(point);
-      this.#pointPresenters.set(point.id, pointPresenter);
-    } catch (error) {
-      console.error(`Error rendering point ${point.id}:`, error);
-    }
+    const pointPresenter = new PointPresenter(
+      container,
+      this.#pointsModel,
+      this.#handlePointChange,
+      this.#handleModeChange
+    );
+    pointPresenter.init(point);
+    this.#pointPresenters.set(point.id, pointPresenter);
   }
 
   #clearPoints() {
-    try {
-      this.#pointPresenters.forEach((presenter) => presenter.destroy());
-      this.#pointPresenters.clear();
-    } catch (error) {
-      console.error('Error clearing points:', error);
-    }
+    this.#pointPresenters.forEach((presenter) => presenter.destroy());
+    this.#pointPresenters.clear();
   }
 
   #getFilteredPoints(filterType) {
-    try {
-      const allPoints = this.#pointsModel.getPoints();
+    const allPoints = this.#pointsModel.getPoints();
 
-      switch (filterType) {
-        case 'future':
-          return allPoints.filter(point => new Date(point.dateFrom) > new Date());
-        case 'present':
-          return allPoints.filter(point =>
-            new Date(point.dateFrom) <= new Date() && new Date(point.dateTo) >= new Date()
-          );
-        case 'past':
-          return allPoints.filter(point => new Date(point.dateTo) < new Date());
-        default:
-          return allPoints;
-      }
-    } catch (error) {
-      console.error('Error filtering points:', error);
-      return [];
+    switch (filterType) {
+      case 'future':
+        return allPoints.filter(point => new Date(point.dateFrom) > new Date());
+      case 'present':
+        return allPoints.filter(point =>
+          new Date(point.dateFrom) <= new Date() && new Date(point.dateTo) >= new Date()
+        );
+      case 'past':
+        return allPoints.filter(point => new Date(point.dateTo) < new Date());
+      default:
+        return allPoints;
     }
   }
 
   #handleSortTypeChange = (sortType) => {
-    try {
-      if (this.#currentSortType === sortType) {
-        return;
-      }
-
-      this.#currentSortType = sortType;
-      this.#clearPoints();
-      this.#renderTripEvents();
-    } catch (error) {
-      console.error('Error handling sort type change:', error);
+    if (this.#currentSortType === sortType) {
+      return;
     }
+
+    this.#currentSortType = sortType;
+    this.#clearPoints();
+    this.#renderTripEvents();
   };
 
   #handleFilterChange = (filterType) => {
-    try {
-      this.#currentFilter = filterType;
-      this.#clearPoints();
-      this.#renderTripEvents();
-    } catch (error) {
-      console.error('Error handling filter change:', error);
-    }
+    this.#currentFilter = filterType;
+    this.#clearPoints();
+    this.#renderTripEvents();
   };
 
   #handlePointChange = (updatedPoint, isDeleting = false) => {
-    try {
-      if (isDeleting) {
-        this.#pointsModel.deletePoint(updatedPoint.id);
-        this.#points = this.#pointsModel.getPoints();
+    if (isDeleting) {
+      this.#pointsModel.deletePoint(updatedPoint.id);
+      this.#points = this.#pointsModel.getPoints();
 
-        const presenter = this.#pointPresenters.get(updatedPoint.id);
-        if (presenter) {
-          presenter.destroy();
-          this.#pointPresenters.delete(updatedPoint.id);
-        }
-      } else {
-        this.#pointsModel.updatePoint(updatedPoint);
-        this.#points = this.#pointsModel.getPoints();
-
-        const presenter = this.#pointPresenters.get(updatedPoint.id);
-        if (presenter) {
-          presenter.init(updatedPoint);
-        }
+      const presenter = this.#pointPresenters.get(updatedPoint.id);
+      if (presenter) {
+        presenter.destroy();
+        this.#pointPresenters.delete(updatedPoint.id);
       }
+    } else {
+      this.#pointsModel.updatePoint(updatedPoint);
+      this.#points = this.#pointsModel.getPoints();
 
-      this.#updateTripInfo();
-      this.#updateFilters();
-
-      if (isDeleting) {
-        this.#renderTripEvents();
+      const presenter = this.#pointPresenters.get(updatedPoint.id);
+      if (presenter) {
+        presenter.init(updatedPoint);
       }
-    } catch (error) {
-      console.error('Error handling point change:', error);
+    }
+
+    this.#updateTripInfo();
+    this.#updateFilters();
+
+    if (isDeleting) {
+      this.#renderTripEvents();
     }
   };
 
   #handleModeChange = () => {
-    try {
-      this.#pointPresenters.forEach((presenter) => presenter.resetView());
-    } catch (error) {
-      console.error('Error handling mode change:', error);
-    }
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
   };
 
   #updateTripInfo() {
-    try {
-      if (this.#tripInfoComponent) {
-        remove(this.#tripInfoComponent);
-      }
-      this.#renderTripInfo();
-    } catch (error) {
-      console.error('Error updating trip info:', error);
+    if (this.#tripInfoComponent) {
+      remove(this.#tripInfoComponent);
     }
+    this.#renderTripInfo();
   }
 
   #updateFilters() {
-    try {
-      if (this.#filtersComponent) {
-        remove(this.#filtersComponent);
-      }
-      this.#renderFilters();
-    } catch (error) {
-      console.error('Error updating filters:', error);
+    if (this.#filtersComponent) {
+      remove(this.#filtersComponent);
     }
+    this.#renderFilters();
   }
 
   destroy() {
-    try {
-      this.#clearPoints();
-      this.#clearTripEvents();
-    } catch (error) {
-      console.error('Error destroying presenter:', error);
-    }
+    this.#clearPoints();
+    this.#clearTripEvents();
   }
 }
