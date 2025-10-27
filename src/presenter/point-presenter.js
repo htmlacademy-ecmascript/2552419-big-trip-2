@@ -32,6 +32,8 @@ export default class PointPresenter {
 
     const offers = this.#tripModel.getOffersById(point.type, point.offers);
     const destination = this.#tripModel.getDestinationById(point.destination);
+    const allDestinations = this.#tripModel.getDestinations();
+    const allOffers = this.#tripModel.getOffers();
 
     if (!destination) {
       console.warn(`Destination not found for point ${point.id}`);
@@ -51,6 +53,8 @@ export default class PointPresenter {
       offers: this.#tripModel.getOffersByType(point.type),
       checkedOffers: offers,
       destination: destination,
+      allDestinations: allDestinations,
+      allOffers: allOffers,
       isNew: false,
       onSubmit: this.#handleFormSubmit,
       onClose: this.#handleCloseClick,

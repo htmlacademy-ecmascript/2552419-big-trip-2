@@ -1,6 +1,6 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { DateMap, huminazeDate } from '../util.js';
-import { POINT_TYPES, POINT_DESTINATIONS } from '../const.js';
+import { POINT_TYPES } from '../const.js';
 
 const createPointOffer = (offer, checkedOffers) => {
   const { id: offerId, title, price } = offer;
@@ -36,7 +36,7 @@ const createPointOffers = (pointOffers, checkedOffers) => {
 const createPointEditFormTemplate = (state) => {
   const { point, offers, checkedOffers, destination, isNew, isTypeListOpen } = state;
   const { id, type, basePrice, dateFrom, dateTo } = point;
-  const { name, description, pictures } = destination;
+  const { name, description, pictures } = destination || {};
 
   const createPointTypes = () => POINT_TYPES.map((item) => `
     <div class="event__type-item">
@@ -45,9 +45,14 @@ const createPointEditFormTemplate = (state) => {
     </div>
   `).join('');
 
-  const createPointDestinations = () => POINT_DESTINATIONS.map((item) => `
-    <option value="${item}"></option>
-  `).join('');
+  const createPointDestinations = () => {
+
+    return `
+      <option value="Amsterdam"></option>
+      <option value="Geneva"></option>
+      <option value="Chamonix"></option>
+    `;
+  };
 
   const createPointPhotos = () => {
     if (!pictures || pictures.length === 0) {
@@ -75,7 +80,7 @@ const createPointEditFormTemplate = (state) => {
               <img class="event__type-icon" width="17" height="17" src="img/icons/${type}.png" alt="Event type icon">
             </label>
             <input class="event__type-toggle visually-hidden" id="event-type-toggle-${id}" type="checkbox" ${isTypeListOpen ? 'checked' : ''}>
-            <div class="event__type-list ${isTypeListOpen ? '' : 'visually-hidden'}">
+            <div class="event__type-list">
               <fieldset class="event__type-group">
                 <legend class="visually-hidden">Event type</legend>
                 ${createPointTypes()}
@@ -86,7 +91,7 @@ const createPointEditFormTemplate = (state) => {
             <label class="event__label event__type-output" for="event-destination-${id}">
               ${type}
             </label>
-            <input class="event__input event__input--destination" id="event-destination-${id}" type="text" name="event-destination" value="${name}" list="destination-list-${id}" autocomplete="off">
+            <input class="event__input event__input--destination" id="event-destination-${id}" type="text" name="event-destination" value="${name || ''}" list="destination-list-${id}" autocomplete="off">
             <datalist id="destination-list-${id}">
               ${createPointDestinations()}
             </datalist>
@@ -115,11 +120,13 @@ const createPointEditFormTemplate = (state) => {
         </header>
         <section class="event__details">
           ${createPointOffers(offers, checkedOffers)}
-          <section class="event__section event__section--destination">
-            <h3 class="event__section-title event__section-title--destination">Destination</h3>
-            <p class="event__destination-description">${description || 'No description available'}</p>
-            ${createPointPhotos()}
-          </section>
+          ${destination ? `
+            <section class="event__section event__section--destination">
+              <h3 class="event__section-title event__section-title--destination">Destination</h3>
+              <p class="event__destination-description">${description || 'No description available'}</p>
+              ${createPointPhotos()}
+            </section>
+          ` : ''}
         </section>
       </form>
     </li>
@@ -148,7 +155,7 @@ export default class PointEditFormView extends AbstractStatefulView {
       point: { ...point },
       offers: { ...offers },
       checkedOffers: [...checkedOffers],
-      destination: { ...destination },
+      destination: destination ? { ...destination } : null,
       isNew,
       isTypeListOpen: false
     });
@@ -161,14 +168,12 @@ export default class PointEditFormView extends AbstractStatefulView {
   }
 
   _restoreHandlers() {
-   
     if (!this.#isNew) {
       const rollupBtn = this.element.querySelector('.event__rollup-btn');
       if (rollupBtn) {
         rollupBtn.addEventListener('click', this.#closeClickHandler);
       }
     }
-
 
     const resetButton = this.element.querySelector('.event__reset-btn');
     if (resetButton) {
@@ -179,30 +184,20 @@ export default class PointEditFormView extends AbstractStatefulView {
       }
     }
 
-
     const form = this.element.querySelector('form');
     if (form) {
       form.addEventListener('submit', this.#formSubmitHandler);
     }
-
-
-    const typeIcon = this.element.querySelector('.event__type-icon');
-    if (typeIcon) {
-      typeIcon.addEventListener('click', this.#typeIconClickHandler);
-    }
-
 
     const typeToggle = this.element.querySelector('.event__type-toggle');
     if (typeToggle) {
       typeToggle.addEventListener('change', this.#typeToggleHandler);
     }
 
-
     const typeInputs = this.element.querySelectorAll('.event__type-input');
     typeInputs.forEach((input) => {
       input.addEventListener('change', this.#typeChangeHandler);
     });
-
 
     const destinationInput = this.element.querySelector('.event__input--destination');
     if (destinationInput) {
@@ -210,18 +205,15 @@ export default class PointEditFormView extends AbstractStatefulView {
       destinationInput.addEventListener('input', this.#destinationInputHandler);
     }
 
-
     const priceInput = this.element.querySelector('.event__input--price');
     if (priceInput) {
       priceInput.addEventListener('change', this.#priceChangeHandler);
     }
 
-
     const offerCheckboxes = this.element.querySelectorAll('.event__offer-checkbox');
     offerCheckboxes.forEach((checkbox) => {
       checkbox.addEventListener('change', this.#offerChangeHandler);
     });
-
 
     document.addEventListener('click', this.#outsideClickHandler);
   }
@@ -241,14 +233,6 @@ export default class PointEditFormView extends AbstractStatefulView {
     this.#handleDeleteClick();
   };
 
-  #typeIconClickHandler = (evt) => {
-    evt.preventDefault();
-    evt.stopPropagation();
-    this.updateElement({
-      isTypeListOpen: !this._state.isTypeListOpen
-    });
-  };
-
   #typeToggleHandler = (evt) => {
     this.updateElement({
       isTypeListOpen: evt.target.checked
@@ -258,7 +242,6 @@ export default class PointEditFormView extends AbstractStatefulView {
   #typeChangeHandler = (evt) => {
     evt.preventDefault();
     const newType = evt.target.value;
-
 
     const newOffers = this.#allOffers.find(offer => offer.type === newType) || { offers: [] };
 
@@ -280,7 +263,6 @@ export default class PointEditFormView extends AbstractStatefulView {
   };
 
   #destinationInputHandler = (evt) => {
-
     this.#updateDestination(evt.target.value);
   };
 
@@ -296,7 +278,6 @@ export default class PointEditFormView extends AbstractStatefulView {
         }
       });
     } else {
-
       this.updateElement({
         destination: {
           name: destinationName,
@@ -348,7 +329,6 @@ export default class PointEditFormView extends AbstractStatefulView {
   };
 
   #outsideClickHandler = (evt) => {
-
     if (this.#isComponentDestroyed) {
       return;
     }
@@ -356,11 +336,9 @@ export default class PointEditFormView extends AbstractStatefulView {
     if (this._state.isTypeListOpen) {
       const typeList = this.element.querySelector('.event__type-list');
       const typeToggle = this.element.querySelector('.event__type-toggle');
-      const typeIcon = this.element.querySelector('.event__type-icon');
 
       if (typeList && !typeList.contains(evt.target) &&
-          typeToggle && !typeToggle.contains(evt.target) &&
-          typeIcon && !typeIcon.contains(evt.target)) {
+          typeToggle && !typeToggle.contains(evt.target)) {
         this.updateElement({
           isTypeListOpen: false
         });
