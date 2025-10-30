@@ -8,6 +8,7 @@ import EmptyListView from '../view/empty-list-view.js';
 import TripInfoView from '../view/trip-info-view.js';
 import FiltersView from '../view/filters-view.js';
 import PointPresenter from './point-presenter.js';
+import PointEditFormView from '../view/point-edit-form-view.js';
 
 export default class Presenter {
   #sortingComponent = null;
@@ -27,6 +28,7 @@ export default class Presenter {
   #isLoading = true;
   #currentFilter = 'everything';
   #currentSortType = SortType.DAY;
+  #newPointPresenter = null;
 
   constructor(tripEventsContainer, tripInfoContainer, filtersContainer, pointsModel) {
     if (!tripEventsContainer || !tripInfoContainer || !filtersContainer || !pointsModel) {
@@ -50,6 +52,96 @@ export default class Presenter {
       this.#renderTripEvents();
     }, LOADING_DELAY);
   }
+
+  createNewPoint() {
+    this.#currentFilter = 'everything';
+    this.#currentSortType = SortType.DAY;
+
+    this.#handleModeChange();
+
+    this.#updateFilters();
+
+    const newPoint = this.#createNewPoint();
+
+    this.#renderNewPointForm(newPoint);
+  }
+
+  #createNewPoint() {
+    const defaultDestination = this.#pointsModel.getDestinations()[0];
+
+    return {
+      id: `new-${Date.now()}`,
+      type: 'flight',
+      dateFrom: new Date().toISOString(),
+      dateTo: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+      destination: defaultDestination ? defaultDestination.id : null,
+      basePrice: 0,
+      isFavorite: false,
+      offers: []
+    };
+  }
+
+  #renderNewPointForm(point) {
+    const offers = this.#pointsModel.getOffersByType(point.type);
+    const destination = point.destination ? this.#pointsModel.getDestinationById(point.destination) : null;
+    const allDestinations = this.#pointsModel.getDestinations();
+    const allOffers = this.#pointsModel.getOffers();
+
+    const pointEditComponent = new PointEditFormView({
+      point: point,
+      offers: offers,
+      checkedOffers: [],
+      destination: destination,
+      allDestinations: allDestinations,
+      allOffers: allOffers,
+      isNew: true,
+      onSubmit: this.#handleNewPointSubmit,
+      onClose: this.#handleNewPointClose,
+      onDelete: this.#handleNewPointClose
+    });
+
+    if (this.#pointsListComponent) {
+      render(pointEditComponent, this.#pointsListComponent.element, 'afterbegin');
+    } else {
+      render(pointEditComponent, this.#tripEventsContainer, 'afterbegin');
+    }
+
+    this.#newPointPresenter = {
+      destroy: () => remove(pointEditComponent)
+    };
+  }
+
+  #handleNewPointSubmit = (point) => {
+    const dateFrom = new Date(point.dateFrom);
+    const dateTo = new Date(point.dateTo);
+
+    if (dateFrom >= dateTo) {
+      alert('Дата начала должна быть раньше даты окончания');
+      return;
+    }
+
+    const { id, ...pointData } = point;
+
+    this.#pointsModel.addPoint(pointData);
+    this.#points = this.#pointsModel.getPoints();
+
+    if (this.#newPointPresenter) {
+      this.#newPointPresenter.destroy();
+      this.#newPointPresenter = null;
+    }
+
+    this.#updateTripInfo();
+    this.#updateFilters();
+    this.#clearPoints();
+    this.#renderTripEvents();
+  };
+
+  #handleNewPointClose = () => {
+    if (this.#newPointPresenter) {
+      this.#newPointPresenter.destroy();
+      this.#newPointPresenter = null;
+    }
+  };
 
   #renderTripInfo() {
     const points = this.#pointsModel.getPoints();
@@ -221,6 +313,11 @@ export default class Presenter {
 
   #handleModeChange = () => {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
+
+    if (this.#newPointPresenter) {
+      this.#newPointPresenter.destroy();
+      this.#newPointPresenter = null;
+    }
   };
 
   #updateTripInfo() {
@@ -240,5 +337,10 @@ export default class Presenter {
   destroy() {
     this.#clearPoints();
     this.#clearTripEvents();
+
+    if (this.#newPointPresenter) {
+      this.#newPointPresenter.destroy();
+      this.#newPointPresenter = null;
+    }
   }
 }
