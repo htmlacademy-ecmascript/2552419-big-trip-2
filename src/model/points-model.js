@@ -44,7 +44,6 @@ export default class PointsModel {
 
   addPoint(newPoint) {
     try {
-      // Генерируем уникальный ID
       const newId = Math.max(...this.#points.map(p => parseInt(p.id)), 0) + 1;
       const pointWithId = {
         ...newPoint,

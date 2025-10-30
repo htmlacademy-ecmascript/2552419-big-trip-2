@@ -332,7 +332,6 @@ export default class PointEditFormView extends AbstractStatefulView {
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
 
-    // Валидация дат
     const dateFrom = new Date(this._state.point.dateFrom);
     const dateTo = new Date(this._state.point.dateTo);
 
@@ -341,7 +340,6 @@ export default class PointEditFormView extends AbstractStatefulView {
       return;
     }
 
-    // Валидация пункта назначения
     const destinationInput = this.element.querySelector('.event__input--destination');
     const destinationName = destinationInput.value;
     const isValidDestination = this.#allDestinations.some(dest => dest.name === destinationName);
@@ -352,7 +350,7 @@ export default class PointEditFormView extends AbstractStatefulView {
       return;
     }
 
-    // Валидация цены
+    
     const priceInput = this.element.querySelector('.event__input--price');
     const priceValue = parseInt(priceInput.value, 10);
 

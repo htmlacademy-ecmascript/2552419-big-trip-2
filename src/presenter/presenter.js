@@ -57,16 +57,12 @@ export default class Presenter {
     this.#currentFilter = 'everything';
     this.#currentSortType = SortType.DAY;
 
-    // Сбрасываем все открытые формы редактирования
     this.#handleModeChange();
 
-    // Обновляем UI фильтров
     this.#updateFilters();
 
-    // Создаем новую точку
     const newPoint = this.#createNewPoint();
 
-    // Рендерим форму создания новой точки
     this.#renderNewPointForm(newPoint);
   }
 
@@ -77,7 +73,7 @@ export default class Presenter {
       id: `new-${Date.now()}`,
       type: 'flight',
       dateFrom: new Date().toISOString(),
-      dateTo: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // +2 часа
+      dateTo: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
       destination: defaultDestination ? defaultDestination.id : null,
       basePrice: 0,
       isFavorite: false,
@@ -116,7 +112,6 @@ export default class Presenter {
   }
 
   #handleNewPointSubmit = (point) => {
-    // Валидация дат
     const dateFrom = new Date(point.dateFrom);
     const dateTo = new Date(point.dateTo);
 
@@ -125,20 +120,16 @@ export default class Presenter {
       return;
     }
 
-    // Удаляем временный ID
     const { id, ...pointData } = point;
 
-    // Добавляем точку в модель
     this.#pointsModel.addPoint(pointData);
     this.#points = this.#pointsModel.getPoints();
 
-    // Закрываем форму создания
     if (this.#newPointPresenter) {
       this.#newPointPresenter.destroy();
       this.#newPointPresenter = null;
     }
 
-    // Обновляем UI
     this.#updateTripInfo();
     this.#updateFilters();
     this.#clearPoints();
@@ -323,7 +314,6 @@ export default class Presenter {
   #handleModeChange = () => {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
 
-    // Закрываем форму создания новой точки
     if (this.#newPointPresenter) {
       this.#newPointPresenter.destroy();
       this.#newPointPresenter = null;
