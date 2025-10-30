@@ -6,15 +6,15 @@ import { SortType } from './const.js';
 dayjs.extend(utc);
 dayjs.extend(duration);
 
+const DEFAULT_POINTS_COUNT = 0;
+const LOADING_DELAY = 1000;
+
 const DateMap = new Map([
   ['MonthDay', 'MMM D'],
   ['DayMonthYear', 'DD/MM/YY'],
   ['HoursMinutes', 'HH:mm'],
-  ['DateTime', 'DD/MM/YY HH:mm']
+  ['DateTime', 'DD/MM/YY HH:mm'] 
 ]);
-
-const DEFAULT_POINTS_COUNT = 0;
-const LOADING_DELAY = 1000;
 
 const huminazeDate = (date, format) => date ? dayjs(date).utc().format(format) : '';
 
@@ -44,7 +44,6 @@ const getRandomArrElem = (array) =>
 
 const isEscapeKey = (evt) => evt.key === 'Escape' || evt.key === 'Esc';
 
-
 const sortPointsByDay = (pointA, pointB) =>
   dayjs(pointA.dateFrom).diff(dayjs(pointB.dateFrom));
 
@@ -70,7 +69,6 @@ const sortPoints = (points, sortType) => {
       return sortedPoints.sort(sortPointsByDay);
   }
 };
-
 
 const filterPoints = {
   everything: (points) => points,
@@ -105,9 +103,6 @@ export {
   filterPoints,
   getFiltersData,
   sortPoints,
-  sortPointsByDay,
-  sortPointsByTime,
-  sortPointsByPrice,
   DEFAULT_POINTS_COUNT,
   LOADING_DELAY
 };

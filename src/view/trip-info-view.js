@@ -16,7 +16,6 @@ const createTripInfoTemplate = (points, destinations, totalCost) => {
     `;
   }
 
-
   const routeDestinations = [];
   points.forEach(point => {
     const destination = destinations.find(dest => dest.id === point.destination);
@@ -25,12 +24,10 @@ const createTripInfoTemplate = (points, destinations, totalCost) => {
     }
   });
 
-
   let routeTitle = routeDestinations.join(' — ');
   if (routeDestinations.length > 3) {
     routeTitle = `${routeDestinations[0]} — ... — ${routeDestinations[routeDestinations.length - 1]}`;
   }
-
 
   const sortedPoints = points.sort((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom));
   const startDate = sortedPoints[0].dateFrom;
