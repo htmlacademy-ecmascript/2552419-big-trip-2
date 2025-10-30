@@ -42,4 +42,13 @@ document.addEventListener('DOMContentLoaded', () => {
   );
 
   presenter.init();
+
+  
+  const newEventButton = document.querySelector('.trip-main__event-add-btn');
+  if (newEventButton) {
+    newEventButton.disabled = false;
+    newEventButton.addEventListener('click', () => {
+      presenter.createNewPoint();
+    });
+  }
 });
