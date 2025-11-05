@@ -47,12 +47,14 @@ export default class PointsModel extends Observable {
 
   addPoint = async (updateType, update) => {
     try {
+      console.log('Adding point to server:', update);
       const response = await this.#apiService.addPoint(update);
       const newPoint = this.#adaptToClient(response);
       this.#points = [newPoint, ...this.#points];
       this._notify(updateType, newPoint);
     } catch (err) {
       console.error('Failed to add point:', err);
+      console.error('Point data that failed:', update);
       throw new Error('Can\'t add point');
     }
   };

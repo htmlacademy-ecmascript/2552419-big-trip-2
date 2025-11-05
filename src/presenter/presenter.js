@@ -153,32 +153,33 @@ export default class Presenter {
     this.#renderTripEvents();
   };
 
-  #validatePoint = (point) => {
-    const destinationInput = document.querySelector('.event__input--destination');
-    const destinationName = destinationInput?.value;
-    const isValidDestination = this.#tripModel.destinations.some(dest => dest.name === destinationName);
 
-    if (!isValidDestination) {
-      this.#showErrorNotification('Please select a destination from the list');
-      destinationInput?.focus();
-      return false;
-    }
+#validatePoint = (point) => {
+  const destinationInput = document.querySelector('.event__input--destination');
+  const destinationName = destinationInput?.value;
+  const isValidDestination = this.#tripModel.destinations.some(dest => dest.name === destinationName);
 
-    const dateFrom = new Date(point.dateFrom);
-    const dateTo = new Date(point.dateTo);
+  if (!isValidDestination) {
+    this.#showErrorNotification('Please select a destination from the list');
+    destinationInput?.focus();
+    return false;
+  }
 
-    if (dateFrom >= dateTo) {
-      this.#showErrorNotification('Start date must be before end date');
-      return false;
-    }
+  const dateFrom = new Date(point.dateFrom);
+  const dateTo = new Date(point.dateTo);
 
-    if (point.basePrice < 0) {
-      this.#showErrorNotification('Price must be a positive number');
-      return false;
-    }
+  if (dateFrom >= dateTo) {
+    this.#showErrorNotification('Start date must be before end date');
+    return false;
+  }
 
-    return true;
-  };
+  if (point.basePrice < 0) {
+    this.#showErrorNotification('Price must be a positive number');
+    return false;
+  }
+
+  return true;
+};
 
   #renderTripInfo = () => {
     const points = this.#tripModel.points;

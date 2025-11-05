@@ -338,7 +338,8 @@ export default class PointEditFormView extends AbstractStatefulView {
     const dateTo = new Date(this._state.point.dateTo);
 
     if (dateFrom >= dateTo) {
-      alert('Дата начала должна быть раньше даты окончания');
+      this.shake(() => {});
+      this.#showFormError('Start date must be before end date');
       return;
     }
 
@@ -347,7 +348,8 @@ export default class PointEditFormView extends AbstractStatefulView {
     const isValidDestination = this.#allDestinations.some(dest => dest.name === destinationName);
 
     if (!isValidDestination) {
-      alert('Пожалуйста, выберите пункт назначения из списка');
+      this.shake(() => {});
+      this.#showFormError('Please select a destination from the list');
       destinationInput.focus();
       return;
     }
@@ -356,12 +358,50 @@ export default class PointEditFormView extends AbstractStatefulView {
     const priceValue = parseInt(priceInput.value, 10);
 
     if (isNaN(priceValue) || priceValue < 0) {
-      alert('Цена должна быть положительным числом');
+      this.shake(() => {});
+      this.#showFormError('Price must be a positive number');
       priceInput.focus();
       return;
     }
 
-    this.#handleFormSubmit(this._state.point);
+  
+    const pointToSubmit = {
+      ...this._state.point,
+      basePrice: priceValue === 0 ? 1 : priceValue
+    };
+
+    this.#handleFormSubmit(pointToSubmit);
+  };
+
+  #showFormError = (message) => {
+    const existingError = this.element.querySelector('.form-error-message');
+    if (existingError) {
+      existingError.remove();
+    }
+
+    const errorElement = document.createElement('div');
+    errorElement.className = 'form-error-message';
+    errorElement.style.cssText = `
+      color: #ff6d6d;
+      font-size: 12px;
+      margin-top: 5px;
+      padding: 5px 10px;
+      background: rgba(255, 109, 109, 0.1);
+      border-radius: 3px;
+      border-left: 3px solid #ff6d6d;
+    `;
+    errorElement.textContent = message;
+
+    const saveButton = this.element.querySelector('.event__save-btn');
+    if (saveButton && saveButton.parentElement) {
+      saveButton.parentElement.insertBefore(errorElement, saveButton.nextSibling);
+    }
+
+    setTimeout(() => {
+      if (errorElement.parentElement) {
+        errorElement.remove();
+      }
+    }, 5000);
   };
 
   #closeClickHandler = (evt) => {
