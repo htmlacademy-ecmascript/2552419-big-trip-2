@@ -1,3 +1,4 @@
+// util.js
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import duration from 'dayjs/plugin/duration';
@@ -13,7 +14,7 @@ const DateMap = new Map([
   ['MonthDay', 'MMM D'],
   ['DayMonthYear', 'DD/MM/YY'],
   ['HoursMinutes', 'HH:mm'],
-  ['DateTime', 'DD/MM/YY HH:mm'] 
+  ['DateTime', 'DD/MM/YY HH:mm']
 ]);
 
 const huminazeDate = (date, format) => date ? dayjs(date).utc().format(format) : '';

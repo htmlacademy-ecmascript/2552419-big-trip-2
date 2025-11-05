@@ -1,3 +1,4 @@
+// trip-info-view.js
 import AbstractView from '../framework/view/abstract-view.js';
 import { huminazeDate } from '../util.js';
 
@@ -16,19 +17,13 @@ const createTripInfoTemplate = (points, destinations, totalCost) => {
     `;
   }
 
+  const sortedPoints = points.sort((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom));
+
   const routeDestinations = [];
-  const destinationMap = new Map();
-
-  destinations.forEach(dest => {
-    destinationMap.set(dest.id, dest.name);
-  });
-
-  const sortedPoints = [...points].sort((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom));
-
   sortedPoints.forEach(point => {
-    const destinationName = destinationMap.get(point.destination);
-    if (destinationName && !routeDestinations.includes(destinationName)) {
-      routeDestinations.push(destinationName);
+    const destination = destinations.find(dest => dest.id === point.destination);
+    if (destination && !routeDestinations.includes(destination.name)) {
+      routeDestinations.push(destination.name);
     }
   });
 

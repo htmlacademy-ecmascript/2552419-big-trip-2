@@ -50,7 +50,7 @@ export default class TaskApiService extends ApiService {
     });
   }
 
-  
+
 #adaptToServer(point) {
   const adaptedPoint = {
     ...point,
