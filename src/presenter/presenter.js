@@ -1,6 +1,6 @@
 import { render, remove } from '../framework/render.js';
 import { getFiltersData, sortPoints } from '../util.js';
-import { SortType, UserAction } from '../const.js';
+import { SortType, UserAction, LOWER_LIMIT, UPPER_LIMIT } from '../const.js';
 import SortingView from '../view/sorting-view.js';
 import PointsListView from '../view/points-list-view.js';
 import LoadingView from '../view/loading-view.js';
@@ -10,6 +10,7 @@ import FiltersView from '../view/filters-view.js';
 import PointPresenter from './point-presenter.js';
 import PointEditFormView from '../view/point-edit-form-view.js';
 import FailedLoadView from '../view/failed-load-view.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 
 export default class Presenter {
   #sortingComponent = null;
@@ -31,12 +32,17 @@ export default class Presenter {
   #currentFilter = 'everything';
   #currentSortType = SortType.DAY;
   #newPointPresenter = null;
+  #uiBlocker = null;
 
   constructor(tripEventsContainer, tripInfoContainer, filtersContainer, tripModel) {
     this.#tripEventsContainer = tripEventsContainer;
     this.#tripInfoContainer = tripInfoContainer;
     this.#filtersContainer = filtersContainer;
     this.#tripModel = tripModel;
+    this.#uiBlocker = new UiBlocker({
+      lowerLimit: LOWER_LIMIT,
+      upperLimit: UPPER_LIMIT
+    });
 
     this.#tripModel.addObserver(this.#handleModelEvent);
   }
@@ -87,7 +93,18 @@ export default class Presenter {
     render(pointEditComponent, this.#tripEventsContainer);
 
     this.#newPointPresenter = {
-      destroy: () => remove(pointEditComponent)
+      component: pointEditComponent,
+      destroy: () => remove(pointEditComponent),
+      setSaving: () => pointEditComponent.setSaving(),
+      setAborting: () => {
+        const resetFormState = () => {
+          pointEditComponent.updateElement({
+            isSaving: false,
+            isDeleting: false
+          });
+        };
+        pointEditComponent.shake(resetFormState);
+      }
     };
   };
 
@@ -107,8 +124,13 @@ export default class Presenter {
   };
 
   #handleNewPointSubmit = async (point) => {
+    this.#uiBlocker.block();
+
     try {
+      this.#newPointPresenter.setSaving();
+
       if (!this.#validatePoint(point)) {
+        this.#newPointPresenter.setAborting();
         return;
       }
 
@@ -116,7 +138,9 @@ export default class Presenter {
       this.#handleNewPointClose();
     } catch (err) {
       console.error('Error adding point:', err);
-      this.#showErrorNotification('Failed to create new point. Please try again.');
+      this.#newPointPresenter.setAborting();
+    } finally {
+      this.#uiBlocker.unblock();
     }
   };
 
@@ -303,17 +327,20 @@ export default class Presenter {
     try {
       switch (actionType) {
         case UserAction.UPDATE_POINT:
+          this.#pointPresenters.get(update.id).setSaving();
           await this.#tripModel.updatePoint(updateType, update);
           break;
         case UserAction.ADD_POINT:
           await this.#tripModel.addPoint(updateType, update);
           break;
         case UserAction.DELETE_POINT:
+          this.#pointPresenters.get(update.id).setDeleting();
           await this.#tripModel.deletePoint(updateType, update);
           break;
       }
     } catch (err) {
       console.error('Error handling view action:', err);
+      this.#pointPresenters.get(update.id)?.setAborting();
       this.#showErrorNotification('Operation failed. Please try again.');
     }
   };
