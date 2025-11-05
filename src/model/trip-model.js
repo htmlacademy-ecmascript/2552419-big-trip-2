@@ -2,7 +2,6 @@ import Observable from '../framework/observable.js';
 import PointsModel from './points-model.js';
 import OffersModel from './offers-model.js';
 import DestinationsModel from './destinations-model.js';
-import { UpdateType } from '../const.js';
 
 export default class TripModel extends Observable {
   #pointsModel = null;
@@ -14,7 +13,6 @@ export default class TripModel extends Observable {
     this.#pointsModel = new PointsModel(apiService);
     this.#offersModel = new OffersModel(apiService);
     this.#destinationsModel = new DestinationsModel(apiService);
-
 
     this.#pointsModel.addObserver(this.#handlePointsModelChange);
   }
@@ -38,9 +36,9 @@ export default class TripModel extends Observable {
         this.#offersModel.init(),
         this.#destinationsModel.init()
       ]);
-      this._notify(UpdateType.INIT);
+      this._notify('INIT');
     } catch (err) {
-      this._notify(UpdateType.INIT, { error: err });
+      this._notify('INIT', { error: err });
     }
   };
 
@@ -81,7 +79,6 @@ export default class TripModel extends Observable {
   };
 
   #handlePointsModelChange = (updateType, data) => {
-
     this._notify(updateType, data);
   };
 }

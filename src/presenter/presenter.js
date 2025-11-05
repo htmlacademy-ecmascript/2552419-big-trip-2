@@ -1,6 +1,6 @@
 import { render, remove } from '../framework/render.js';
 import { getFiltersData, sortPoints } from '../util.js';
-import { SortType, UserAction, UpdateType } from '../const.js';
+import { SortType, UserAction } from '../const.js';
 import SortingView from '../view/sorting-view.js';
 import PointsListView from '../view/points-list-view.js';
 import LoadingView from '../view/loading-view.js';
@@ -56,7 +56,6 @@ export default class Presenter {
   };
 
   createNewPoint = () => {
-
     this.#currentFilter = 'everything';
     this.#currentSortType = SortType.DAY;
     this.#handleModeChange();
@@ -113,7 +112,7 @@ export default class Presenter {
         return;
       }
 
-      await this.#tripModel.addPoint(UserAction.ADD_POINT, point);
+      await this.#tripModel.addPoint('MINOR', point);
       this.#handleNewPointClose();
     } catch (err) {
       console.error('Error adding point:', err);
@@ -321,22 +320,23 @@ export default class Presenter {
 
   #handleModelEvent = (updateType, data) => {
     switch (updateType) {
-      case UpdateType.PATCH:
+      case 'PATCH':
         this.#pointPresenters.get(data.id).init(data);
+        this.#updateTripInfo();
         break;
-      case UpdateType.MINOR:
+      case 'MINOR':
         this.#updateTripInfo();
         this.#updateFilters();
         this.#clearPoints();
         this.#renderTripEvents();
         break;
-      case UpdateType.MAJOR:
+      case 'MAJOR':
         this.#updateTripInfo();
         this.#updateFilters();
         this.#clearPoints();
         this.#renderTripEvents();
         break;
-      case UpdateType.INIT:
+      case 'INIT':
         this.#isLoading = false;
         this.#updateTripInfo();
         this.#updateFilters();

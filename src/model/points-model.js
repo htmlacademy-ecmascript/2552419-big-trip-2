@@ -1,6 +1,5 @@
 import Observable from '../framework/observable.js';
 
-
 export default class PointsModel extends Observable {
   #points = [];
   #apiService = null;
