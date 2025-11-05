@@ -1,67 +1,84 @@
+import Observable from '../framework/observable.js';
 import PointsModel from './points-model.js';
 import OffersModel from './offers-model.js';
 import DestinationsModel from './destinations-model.js';
 
-export default class TripModel {
+export default class TripModel extends Observable {
   #pointsModel = null;
   #offersModel = null;
   #destinationsModel = null;
 
-  constructor() {
-    this.#pointsModel = new PointsModel();
-    this.#offersModel = new OffersModel();
-    this.#destinationsModel = new DestinationsModel();
+  constructor(apiService) {
+    super();
+    this.#pointsModel = new PointsModel(apiService);
+    this.#offersModel = new OffersModel(apiService);
+    this.#destinationsModel = new DestinationsModel(apiService);
+
+    this.#pointsModel.addObserver(this.#handlePointsModelChange);
   }
 
-
-  getPoints() {
-    return this.#pointsModel.getPoints();
+  get points() {
+    return this.#pointsModel.points;
   }
 
-  deletePoint(pointId) {
-    return this.#pointsModel.deletePoint(pointId);
+  get offers() {
+    return this.#offersModel.offers;
   }
 
-  updatePoint(updatedPoint) {
-    return this.#pointsModel.updatePoint(updatedPoint);
+  get destinations() {
+    return this.#destinationsModel.destinations;
   }
 
-  addPoint(newPoint) {
-    return this.#pointsModel.addPoint(newPoint);
-  }
+  init = async () => {
+    try {
+      await Promise.all([
+        this.#pointsModel.init(),
+        this.#offersModel.init(),
+        this.#destinationsModel.init()
+      ]);
+      this._notify('INIT');
+    } catch (err) {
+      this._notify('INIT', { error: err });
+    }
+  };
 
+  addPoint = async (updateType, update) => {
+    await this.#pointsModel.addPoint(updateType, update);
+  };
 
-  getOffers() {
-    return this.#offersModel.getOffers();
-  }
+  updatePoint = async (updateType, update) => {
+    await this.#pointsModel.updatePoint(updateType, update);
+  };
 
-  getOffersByType(type) {
+  deletePoint = async (updateType, update) => {
+    await this.#pointsModel.deletePoint(updateType, update);
+  };
+
+  getOffersByType = (type) => {
     return this.#offersModel.getOffersByType(type);
-  }
+  };
 
-  getOffersById(type, offersIds) {
+  getOffersById = (type, offersIds) => {
     return this.#offersModel.getOffersById(type, offersIds);
-  }
+  };
 
-
-  getDestinations() {
-    return this.#destinationsModel.getDestinations();
-  }
-
-  getDestinationById(id) {
+  getDestinationById = (id) => {
     return this.#destinationsModel.getDestinationById(id);
-  }
+  };
 
-  getDestinationByName(name) {
+  getDestinationByName = (name) => {
     return this.#destinationsModel.getDestinationByName(name);
-  }
+  };
 
-
-  calculateTotalCost() {
-    return this.getPoints().reduce((total, point) => {
+  calculateTotalCost = () => {
+    return this.points.reduce((total, point) => {
       const pointOffers = this.getOffersById(point.type, point.offers);
       const offersCost = pointOffers.reduce((sum, offer) => sum + offer.price, 0);
       return total + point.basePrice + offersCost;
     }, 0);
-  }
+  };
+
+  #handlePointsModelChange = (updateType, data) => {
+    this._notify(updateType, data);
+  };
 }
