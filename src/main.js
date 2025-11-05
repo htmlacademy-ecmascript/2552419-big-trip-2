@@ -1,5 +1,9 @@
 import Presenter from './presenter/presenter.js';
 import TripModel from './model/trip-model.js';
+import TaskApiService from './framework/task-api-service.js';
+
+const AUTHORIZATION = 'Basic eo0w590ik29889a';
+const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
 
 document.addEventListener('DOMContentLoaded', () => {
   const tripEventsContainer = document.querySelector('.trip-events');
@@ -33,7 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  const tripModel = new TripModel();
+  const apiService = new TaskApiService(END_POINT, AUTHORIZATION);
+  const tripModel = new TripModel(apiService);
   const presenter = new Presenter(
     tripEventsContainer,
     tripInfoContainer,
@@ -43,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   presenter.init();
 
-  
   const newEventButton = document.querySelector('.trip-main__event-add-btn');
   if (newEventButton) {
     newEventButton.disabled = false;

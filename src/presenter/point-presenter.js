@@ -2,6 +2,7 @@ import { render, replace, remove } from '../framework/render.js';
 import PointView from '../view/point-view.js';
 import PointEditFormView from '../view/point-edit-form-view.js';
 import { isEscapeKey } from '../util.js';
+import { UserAction, UpdateType } from '../const.js';
 
 export default class PointPresenter {
   #container = null;
@@ -14,10 +15,6 @@ export default class PointPresenter {
   #point = null;
 
   constructor(container, tripModel, onDataChange, onModeChange) {
-    if (!container || !tripModel || !onDataChange || !onModeChange) {
-      throw new Error('PointPresenter: Required dependencies not provided');
-    }
-
     this.#container = container;
     this.#tripModel = tripModel;
     this.#handleDataChange = onDataChange;
@@ -32,8 +29,8 @@ export default class PointPresenter {
 
     const offers = this.#tripModel.getOffersById(point.type, point.offers);
     const destination = this.#tripModel.getDestinationById(point.destination);
-    const allDestinations = this.#tripModel.getDestinations();
-    const allOffers = this.#tripModel.getOffers();
+    const allDestinations = this.#tripModel.destinations;
+    const allOffers = this.#tripModel.offers;
 
     if (!destination) {
       console.warn(`Destination not found for point ${point.id}`);
@@ -113,15 +110,22 @@ export default class PointPresenter {
   };
 
   #handleFavoriteClick = () => {
-    this.#handleDataChange({
-      ...this.#point,
-      isFavorite: !this.#point.isFavorite
-    });
+    this.#handleDataChange(
+      UserAction.UPDATE_POINT,
+      UpdateType.PATCH,
+      {
+        ...this.#point,
+        isFavorite: !this.#point.isFavorite
+      }
+    );
   };
 
   #handleFormSubmit = (point) => {
-    this.#handleDataChange(point);
-    this.#replaceFormToPoint();
+    this.#handleDataChange(
+      UserAction.UPDATE_POINT,
+      UpdateType.MINOR,
+      point
+    );
   };
 
   #handleCloseClick = () => {
@@ -129,6 +133,10 @@ export default class PointPresenter {
   };
 
   #handleDeleteClick = () => {
-    this.#handleDataChange(this.#point, true);
+    this.#handleDataChange(
+      UserAction.DELETE_POINT,
+      UpdateType.MINOR,
+      this.#point
+    );
   };
 }
