@@ -1,4 +1,3 @@
-// util.js
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import duration from 'dayjs/plugin/duration';
@@ -6,9 +5,6 @@ import { SortType } from './const.js';
 
 dayjs.extend(utc);
 dayjs.extend(duration);
-
-const DEFAULT_POINTS_COUNT = 0;
-const LOADING_DELAY = 1000;
 
 const DateMap = new Map([
   ['MonthDay', 'MMM D'],
@@ -36,12 +32,6 @@ const getDateDifference = (start, end) => {
   }
   return `${minutes}M`;
 };
-
-const getRandomInteger = (min, max) =>
-  Math.floor(Math.random() * (Math.floor(max) - Math.ceil(min) + 1) + Math.ceil(min));
-
-const getRandomArrElem = (array) =>
-  array[Math.floor(Math.random() * array.length)];
 
 const isEscapeKey = (evt) => evt.key === 'Escape' || evt.key === 'Esc';
 
@@ -95,15 +85,11 @@ const getFiltersData = (points) => {
 };
 
 export {
-  getRandomArrElem,
-  getRandomInteger,
   DateMap,
   getDateDifference,
   huminazeDate,
   isEscapeKey,
   filterPoints,
   getFiltersData,
-  sortPoints,
-  DEFAULT_POINTS_COUNT,
-  LOADING_DELAY
+  sortPoints
 };

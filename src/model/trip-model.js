@@ -1,4 +1,3 @@
-// trip-model.js
 import Observable from '../framework/observable.js';
 import PointsModel from './points-model.js';
 import OffersModel from './offers-model.js';
@@ -31,16 +30,12 @@ export default class TripModel extends Observable {
   }
 
   init = async () => {
-    try {
-      await Promise.all([
-        this.#pointsModel.init(),
-        this.#offersModel.init(),
-        this.#destinationsModel.init()
-      ]);
-      this._notify('INIT');
-    } catch (err) {
-      this._notify('INIT', { error: err });
-    }
+    await Promise.all([
+      this.#pointsModel.init(),
+      this.#offersModel.init(),
+      this.#destinationsModel.init()
+    ]);
+    this._notify('INIT');
   };
 
   addPoint = async (updateType, update) => {

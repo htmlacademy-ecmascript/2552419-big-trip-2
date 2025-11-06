@@ -14,12 +14,7 @@ export default class DestinationsModel extends Observable {
   }
 
   init = async () => {
-    try {
-      this.#destinations = await this.#apiService.getDestinations();
-    } catch (err) {
-      this.#destinations = [];
-      throw new Error('Failed to load destinations');
-    }
+    this.#destinations = await this.#apiService.getDestinations();
   };
 
   getDestinationById = (id) => {
