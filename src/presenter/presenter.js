@@ -1,4 +1,3 @@
-// presenter.js
 import { render, remove } from '../framework/render.js';
 import { getFiltersData, sortPoints } from '../util.js';
 import { SortType, UserAction, LOWER_LIMIT, UPPER_LIMIT } from '../const.js';
@@ -50,16 +49,9 @@ export default class Presenter {
 
   init = async () => {
     this.#renderLoading();
-
-    try {
-      await this.#tripModel.init();
-      this.#isLoading = false;
-      this.#renderTripEvents();
-    } catch (err) {
-      this.#isLoading = false;
-      this.#isLoadingFailed = true;
-      this.#renderTripEvents();
-    }
+    await this.#tripModel.init();
+    this.#isLoading = false;
+    this.#renderTripEvents();
   };
 
   createNewPoint = () => {
@@ -115,8 +107,8 @@ export default class Presenter {
     return {
       id: null,
       type: 'flight',
-      dateFrom: new Date().toISOString(),
-      dateTo: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+      dateFrom: null,
+      dateTo: null,
       destination: defaultDestination ? defaultDestination.id : null,
       basePrice: 0,
       isFavorite: false,
@@ -127,22 +119,16 @@ export default class Presenter {
   #handleNewPointSubmit = async (point) => {
     this.#uiBlocker.block();
 
-    try {
-      this.#newPointPresenter.setSaving();
+    this.#newPointPresenter.setSaving();
 
-      if (!this.#validatePoint(point)) {
-        this.#newPointPresenter.setAborting();
-        return;
-      }
-
-      await this.#tripModel.addPoint('MINOR', point);
-      this.#handleNewPointClose();
-    } catch (err) {
-      console.error('Error adding point:', err);
+    if (!this.#validatePoint(point)) {
       this.#newPointPresenter.setAborting();
-    } finally {
-      this.#uiBlocker.unblock();
+      return;
     }
+
+    await this.#tripModel.addPoint('MINOR', point);
+    this.#handleNewPointClose();
+    this.#uiBlocker.unblock();
   };
 
   #handleNewPointClose = () => {
@@ -160,7 +146,6 @@ export default class Presenter {
     const isValidDestination = this.#tripModel.destinations.some(dest => dest.name === destinationName);
 
     if (!isValidDestination) {
-      this.#showErrorNotification('Please select a destination from the list');
       destinationInput?.focus();
       return false;
     }
@@ -169,12 +154,10 @@ export default class Presenter {
     const dateTo = new Date(point.dateTo);
 
     if (dateFrom >= dateTo) {
-      this.#showErrorNotification('Start date must be before end date');
       return false;
     }
 
-    if (point.basePrice < 0) {
-      this.#showErrorNotification('Price must be a positive number');
+    if (point.basePrice <= 0) {
       return false;
     }
 
@@ -232,11 +215,6 @@ export default class Presenter {
 
     if (this.#isLoading) {
       this.#renderLoading();
-      return;
-    }
-
-    if (this.#isLoadingFailed) {
-      this.#renderFailedLoad();
       return;
     }
 
@@ -325,24 +303,18 @@ export default class Presenter {
   };
 
   #handleViewAction = async (actionType, updateType, update) => {
-    try {
-      switch (actionType) {
-        case UserAction.UPDATE_POINT:
-          this.#pointPresenters.get(update.id).setSaving();
-          await this.#tripModel.updatePoint(updateType, update);
-          break;
-        case UserAction.ADD_POINT:
-          await this.#tripModel.addPoint(updateType, update);
-          break;
-        case UserAction.DELETE_POINT:
-          this.#pointPresenters.get(update.id).setDeleting();
-          await this.#tripModel.deletePoint(updateType, update);
-          break;
-      }
-    } catch (err) {
-      console.error('Error handling view action:', err);
-      this.#pointPresenters.get(update.id)?.setAborting();
-      this.#showErrorNotification('Operation failed. Please try again.');
+    switch (actionType) {
+      case UserAction.UPDATE_POINT:
+        this.#pointPresenters.get(update.id).setSaving();
+        await this.#tripModel.updatePoint(updateType, update);
+        break;
+      case UserAction.ADD_POINT:
+        await this.#tripModel.addPoint(updateType, update);
+        break;
+      case UserAction.DELETE_POINT:
+        this.#pointPresenters.get(update.id).setDeleting();
+        await this.#tripModel.deletePoint(updateType, update);
+        break;
     }
   };
 
@@ -395,30 +367,6 @@ export default class Presenter {
       remove(this.#filtersComponent);
     }
     this.#renderFilters();
-  };
-
-  #showErrorNotification = (message) => {
-    const errorElement = document.createElement('div');
-    errorElement.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #ff4444;
-      color: white;
-      padding: 15px;
-      border-radius: 5px;
-      z-index: 10000;
-      max-width: 300px;
-    `;
-    errorElement.textContent = message;
-
-    document.body.appendChild(errorElement);
-
-    setTimeout(() => {
-      if (document.body.contains(errorElement)) {
-        document.body.removeChild(errorElement);
-      }
-    }, 5000);
   };
 
   destroy = () => {

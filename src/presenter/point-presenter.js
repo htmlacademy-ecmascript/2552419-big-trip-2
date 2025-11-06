@@ -39,7 +39,6 @@ export default class PointPresenter {
     const allOffers = this.#tripModel.offers;
 
     if (!destination) {
-      console.warn(`Destination not found for point ${point.id}`);
       return;
     }
 
@@ -154,17 +153,12 @@ export default class PointPresenter {
   #handleFormSubmit = async (point) => {
     this.#uiBlocker.block();
 
-    try {
-      await this.#handleDataChange(
-        UserAction.UPDATE_POINT,
-        'MINOR',
-        point
-      );
-    } catch(err) {
-      this.setAborting();
-    } finally {
-      this.#uiBlocker.unblock();
-    }
+    await this.#handleDataChange(
+      UserAction.UPDATE_POINT,
+      'MINOR',
+      point
+    );
+    this.#uiBlocker.unblock();
   };
 
   #handleCloseClick = () => {
@@ -174,16 +168,11 @@ export default class PointPresenter {
   #handleDeleteClick = async () => {
     this.#uiBlocker.block();
 
-    try {
-      await this.#handleDataChange(
-        UserAction.DELETE_POINT,
-        'MINOR',
-        this.#point
-      );
-    } catch(err) {
-      this.setAborting();
-    } finally {
-      this.#uiBlocker.unblock();
-    }
+    await this.#handleDataChange(
+      UserAction.DELETE_POINT,
+      'MINOR',
+      this.#point
+    );
+    this.#uiBlocker.unblock();
   };
 }
