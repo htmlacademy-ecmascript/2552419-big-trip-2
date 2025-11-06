@@ -77,6 +77,8 @@ const createPointEditFormTemplate = (state) => {
     `;
   };
 
+  const shouldShowDestinationSection = destination && (destination.description || (destination.pictures && destination.pictures.length > 0));
+
   return `
     <li class="trip-events__item" style="list-style: none; padding: 0; margin: 0;">
       <form class="event event--edit" action="#" method="post">
@@ -127,7 +129,7 @@ const createPointEditFormTemplate = (state) => {
         </header>
         <section class="event__details">
           ${createPointOffers(offers, checkedOffers, isDisabled)}
-          ${destination ? `
+          ${shouldShowDestinationSection ? `
             <section class="event__section event__section--destination">
               <h3 class="event__section-title event__section-title--destination">Destination</h3>
               <p class="event__destination-description">${description || 'No description available'}</p>
