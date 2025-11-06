@@ -50,25 +50,31 @@ export default class TaskApiService extends ApiService {
     });
   }
 
-  #adaptToServer(point) {
-    const adaptedPoint = {
-      ...point,
-      'date_from': point.dateFrom,
-      'date_to': point.dateTo,
-      'base_price': Number(point.basePrice),
-      'is_favorite': point.isFavorite
-    };
+
+#adaptToServer(point) {
+  const adaptedPoint = {
+    ...point,
+    'date_from': point.dateFrom,
+    'date_to': point.dateTo,
+    'base_price': Number(point.basePrice),
+    'is_favorite': point.isFavorite
+  };
 
 
-    if (adaptedPoint.id === null) {
-      delete adaptedPoint.id;
-    }
-
-    delete adaptedPoint.dateFrom;
-    delete adaptedPoint.dateTo;
-    delete adaptedPoint.basePrice;
-    delete adaptedPoint.isFavorite;
-
-    return adaptedPoint;
+  if (adaptedPoint.id === null) {
+    delete adaptedPoint.id;
   }
+
+
+  if (!adaptedPoint.offers) {
+    adaptedPoint.offers = [];
+  }
+
+  delete adaptedPoint.dateFrom;
+  delete adaptedPoint.dateTo;
+  delete adaptedPoint.basePrice;
+  delete adaptedPoint.isFavorite;
+
+  return adaptedPoint;
+}
 }

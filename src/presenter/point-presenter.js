@@ -2,13 +2,15 @@ import { render, replace, remove } from '../framework/render.js';
 import PointView from '../view/point-view.js';
 import PointEditFormView from '../view/point-edit-form-view.js';
 import { isEscapeKey } from '../util.js';
-import { UserAction } from '../const.js';
+import { UserAction, LOWER_LIMIT, UPPER_LIMIT } from '../const.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 
 export default class PointPresenter {
   #container = null;
   #tripModel = null;
   #handleDataChange = null;
   #handleModeChange = null;
+  #uiBlocker = null;
 
   #pointComponent = null;
   #pointEditComponent = null;
@@ -19,6 +21,10 @@ export default class PointPresenter {
     this.#tripModel = tripModel;
     this.#handleDataChange = onDataChange;
     this.#handleModeChange = onModeChange;
+    this.#uiBlocker = new UiBlocker({
+      lowerLimit: LOWER_LIMIT,
+      upperLimit: UPPER_LIMIT
+    });
   }
 
   init(point) {
@@ -87,6 +93,31 @@ export default class PointPresenter {
     }
   }
 
+  setSaving() {
+    if (this.#pointEditComponent) {
+      this.#pointEditComponent.setSaving();
+    }
+  }
+
+  setDeleting() {
+    if (this.#pointEditComponent) {
+      this.#pointEditComponent.setDeleting();
+    }
+  }
+
+  setAborting() {
+    if (this.#pointEditComponent) {
+      const resetFormState = () => {
+        this.#pointEditComponent.updateElement({
+          isSaving: false,
+          isDeleting: false
+        });
+      };
+
+      this.#pointEditComponent.shake(resetFormState);
+    }
+  }
+
   #replacePointToForm() {
     this.#handleModeChange();
     replace(this.#pointEditComponent, this.#pointComponent);
@@ -120,23 +151,39 @@ export default class PointPresenter {
     );
   };
 
-  #handleFormSubmit = (point) => {
-    this.#handleDataChange(
-      UserAction.UPDATE_POINT,
-      'MINOR',
-      point
-    );
+  #handleFormSubmit = async (point) => {
+    this.#uiBlocker.block();
+
+    try {
+      await this.#handleDataChange(
+        UserAction.UPDATE_POINT,
+        'MINOR',
+        point
+      );
+    } catch(err) {
+      this.setAborting();
+    } finally {
+      this.#uiBlocker.unblock();
+    }
   };
 
   #handleCloseClick = () => {
     this.#replaceFormToPoint();
   };
 
-  #handleDeleteClick = () => {
-    this.#handleDataChange(
-      UserAction.DELETE_POINT,
-      'MINOR',
-      this.#point
-    );
+  #handleDeleteClick = async () => {
+    this.#uiBlocker.block();
+
+    try {
+      await this.#handleDataChange(
+        UserAction.DELETE_POINT,
+        'MINOR',
+        this.#point
+      );
+    } catch(err) {
+      this.setAborting();
+    } finally {
+      this.#uiBlocker.unblock();
+    }
   };
 }

@@ -21,9 +21,14 @@ const UpdateType = {
   INIT: 'INIT'
 };
 
+const LOWER_LIMIT = 350;
+const UPPER_LIMIT = 1000;
+
 export {
   POINT_TYPES,
   SortType,
   UserAction,
-  UpdateType
+  UpdateType,
+  LOWER_LIMIT,
+  UPPER_LIMIT
 };

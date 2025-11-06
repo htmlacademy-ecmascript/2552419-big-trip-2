@@ -1,3 +1,4 @@
+// filters-view.js
 import AbstractView from '../framework/view/abstract-view.js';
 
 const createFilterItemTemplate = (filter, isChecked, isDisabled) => {
@@ -21,28 +22,30 @@ const createFilterItemTemplate = (filter, isChecked, isDisabled) => {
   `;
 };
 
-const createFiltersTemplate = (filters) => `
+const createFiltersTemplate = (filters, currentFilter) => `
   <form class="trip-filters" action="#" method="get">
-    ${filters.map((filter, index) =>
-      createFilterItemTemplate(filter, index === 0, filter.count === 0)
-    ).join('')}
+    ${filters.map((filter) => {
+      const isChecked = filter.type === currentFilter;
+      const isDisabled = filter.count === 0 && !isChecked;
+      return createFilterItemTemplate(filter, isChecked, isDisabled);
+    }).join('')}
     <button class="visually-hidden" type="submit">Accept filter</button>
   </form>
 `;
 
 export default class FiltersView extends AbstractView {
   #filters = null;
+  #currentFilter = null;
 
-  constructor(filters) {
+  constructor(filters, currentFilter) {
     super();
     this.#filters = filters;
-
-
+    this.#currentFilter = currentFilter;
     this._callback = {};
   }
 
   get template() {
-    return createFiltersTemplate(this.#filters);
+    return createFiltersTemplate(this.#filters, this.#currentFilter);
   }
 
   setFilterChangeHandler(callback) {
