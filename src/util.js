@@ -13,8 +13,19 @@ const DateMap = new Map([
   ['DateTime', 'DD/MM/YY HH:mm']
 ]);
 
-const humanizeDate = (date, format) => date ? dayjs(date).utc().format(format) : '';
+const humanizeDate = (date, format) => {
+  if (!date) {
+    return '';
+  }
+ const dateObj = dayjs(date);
+  let formatted = dateObj.format(format);
 
+  if (format === 'MMM D' || format === 'MMM') {
+    formatted = formatted.toLowerCase();
+  }
+
+  return formatted;
+};
 const getDateDifference = (start, end) => {
   const diff = dayjs(end).diff(dayjs(start));
   const durationObj = dayjs.duration(diff);
@@ -23,14 +34,17 @@ const getDateDifference = (start, end) => {
   const hours = durationObj.hours();
   const minutes = durationObj.minutes();
 
+  const formatNumber = (num) => num.toString().padStart(2, '0');
+
   if (days > 0) {
-    return `${days}D ${hours}H ${minutes}M`;
+    return `${formatNumber(days)}d ${formatNumber(hours)}h ${formatNumber(minutes)}m`;
   }
 
   if (hours > 0) {
-    return `${hours}H ${minutes}M`;
+    return `${formatNumber(hours)}h ${formatNumber(minutes)}m`;
   }
-  return `${minutes}M`;
+
+  return `${formatNumber(minutes)}m`;
 };
 
 const isEscapeKey = (evt) => evt.key === 'Escape' || evt.key === 'Esc';
