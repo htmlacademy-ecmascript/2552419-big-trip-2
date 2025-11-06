@@ -1,4 +1,3 @@
-// trip-info-view.js
 import AbstractView from '../framework/view/abstract-view.js';
 import { huminazeDate } from '../util.js';
 

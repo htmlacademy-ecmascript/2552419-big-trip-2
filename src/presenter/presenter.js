@@ -157,7 +157,7 @@ export default class Presenter {
       return false;
     }
 
-    if (point.basePrice < 0) {
+    if (point.basePrice <= 0) {
       return false;
     }
 

@@ -78,7 +78,7 @@ const createPointEditFormTemplate = (state) => {
   };
 
   return `
-    <li class="trip-events__item">
+    <li class="trip-events__item" style="list-style: none; padding: 0; margin: 0;">
       <form class="event event--edit" action="#" method="post">
         <header class="event__header">
           <div class="event__type-wrapper">
@@ -268,6 +268,7 @@ export default class PointEditFormView extends AbstractStatefulView {
       clickOpens: true,
       static: false,
       monthSelectorType: 'static',
+      minuteIncrement: 1,
       locale: {
         firstDayOfWeek: 1
       },
@@ -355,7 +356,7 @@ export default class PointEditFormView extends AbstractStatefulView {
     const priceInput = this.element.querySelector('.event__input--price');
     const priceValue = parseInt(priceInput.value, 10);
 
-    if (isNaN(priceValue) || priceValue < 0) {
+    if (isNaN(priceValue) || priceValue <= 0) {
       this.shake(() => {});
       priceInput.focus();
       return;
@@ -363,7 +364,7 @@ export default class PointEditFormView extends AbstractStatefulView {
 
     const pointToSubmit = {
       ...this._state.point,
-      basePrice: priceValue === 0 ? 1 : priceValue
+      basePrice: priceValue
     };
 
     this.#handleFormSubmit(pointToSubmit);
