@@ -78,7 +78,7 @@ const createPointEditFormTemplate = (state) => {
   };
 
   return `
-    <li class="trip-events__item">
+    <li class="trip-events__item" style="list-style: none; padding: 0; margin: 0;">
       <form class="event event--edit" action="#" method="post">
         <header class="event__header">
           <div class="event__type-wrapper">
@@ -105,10 +105,10 @@ const createPointEditFormTemplate = (state) => {
           </div>
           <div class="event__field-group event__field-group--time">
             <label class="visually-hidden" for="event-start-time-${id}">From</label>
-            <input class="event__input event__input--time" id="event-start-time-${id}" type="text" name="event-start-time" value="${huminazeDate(dateFrom, DateMap.get('DateTime'))}" readonly ${isDisabled ? 'disabled' : ''}>
+            <input class="event__input event__input--time" id="event-start-time-${id}" type="text" name="event-start-time" value="${dateFrom ? huminazeDate(dateFrom, DateMap.get('DateTime')) : ''}" readonly ${isDisabled ? 'disabled' : ''}>
             &mdash;
             <label class="visually-hidden" for="event-end-time-${id}">To</label>
-            <input class="event__input event__input--time" id="event-end-time-${id}" type="text" name="event-end-time" value="${huminazeDate(dateTo, DateMap.get('DateTime'))}" readonly ${isDisabled ? 'disabled' : ''}>
+            <input class="event__input event__input--time" id="event-end-time-${id}" type="text" name="event-end-time" value="${dateTo ? huminazeDate(dateTo, DateMap.get('DateTime')) : ''}" readonly ${isDisabled ? 'disabled' : ''}>
           </div>
           <div class="event__field-group event__field-group--price">
             <label class="event__label" for="event-price-${id}">
@@ -268,6 +268,7 @@ export default class PointEditFormView extends AbstractStatefulView {
       clickOpens: true,
       static: false,
       monthSelectorType: 'static',
+      minuteIncrement: 1,
       locale: {
         firstDayOfWeek: 1
       },
@@ -339,7 +340,6 @@ export default class PointEditFormView extends AbstractStatefulView {
 
     if (dateFrom >= dateTo) {
       this.shake(() => {});
-      this.#showFormError('Start date must be before end date');
       return;
     }
 
@@ -349,7 +349,6 @@ export default class PointEditFormView extends AbstractStatefulView {
 
     if (!isValidDestination) {
       this.shake(() => {});
-      this.#showFormError('Please select a destination from the list');
       destinationInput.focus();
       return;
     }
@@ -357,51 +356,18 @@ export default class PointEditFormView extends AbstractStatefulView {
     const priceInput = this.element.querySelector('.event__input--price');
     const priceValue = parseInt(priceInput.value, 10);
 
-    if (isNaN(priceValue) || priceValue < 0) {
+    if (isNaN(priceValue) || priceValue <= 0) {
       this.shake(() => {});
-      this.#showFormError('Price must be a positive number');
       priceInput.focus();
       return;
     }
 
-  
     const pointToSubmit = {
       ...this._state.point,
-      basePrice: priceValue === 0 ? 1 : priceValue
+      basePrice: priceValue
     };
 
     this.#handleFormSubmit(pointToSubmit);
-  };
-
-  #showFormError = (message) => {
-    const existingError = this.element.querySelector('.form-error-message');
-    if (existingError) {
-      existingError.remove();
-    }
-
-    const errorElement = document.createElement('div');
-    errorElement.className = 'form-error-message';
-    errorElement.style.cssText = `
-      color: #ff6d6d;
-      font-size: 12px;
-      margin-top: 5px;
-      padding: 5px 10px;
-      background: rgba(255, 109, 109, 0.1);
-      border-radius: 3px;
-      border-left: 3px solid #ff6d6d;
-    `;
-    errorElement.textContent = message;
-
-    const saveButton = this.element.querySelector('.event__save-btn');
-    if (saveButton && saveButton.parentElement) {
-      saveButton.parentElement.insertBefore(errorElement, saveButton.nextSibling);
-    }
-
-    setTimeout(() => {
-      if (errorElement.parentElement) {
-        errorElement.remove();
-      }
-    }, 5000);
   };
 
   #closeClickHandler = (evt) => {
