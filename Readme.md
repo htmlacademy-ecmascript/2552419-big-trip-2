@@ -1,7 +1,7 @@
 # Проект «Большое путешествие»
 
 * Студент: [Григор Мкртчян](https://up.htmlacademy.ru/ecmascript-individual/2/user/2552419).
-* Наставник: [Евгений Лепёшкин](https://up.htmlacademy.ru).
+* Наставник: [Евгений Лепёшкин](https://spearance.ru/).
 
 ---
 
