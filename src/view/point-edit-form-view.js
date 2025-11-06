@@ -1,5 +1,5 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { DateMap, huminazeDate } from '../util.js';
+import { DateMap, humanizeDate } from '../util.js';
 import { POINT_TYPES } from '../const.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
@@ -105,10 +105,10 @@ const createPointEditFormTemplate = (state) => {
           </div>
           <div class="event__field-group event__field-group--time">
             <label class="visually-hidden" for="event-start-time-${id}">From</label>
-            <input class="event__input event__input--time" id="event-start-time-${id}" type="text" name="event-start-time" value="${dateFrom ? huminazeDate(dateFrom, DateMap.get('DateTime')) : ''}" readonly ${isDisabled ? 'disabled' : ''}>
+            <input class="event__input event__input--time" id="event-start-time-${id}" type="text" name="event-start-time" value="${dateFrom ? humanizeDate(dateFrom, DateMap.get('DateTime')) : ''}" readonly ${isDisabled ? 'disabled' : ''}>
             &mdash;
             <label class="visually-hidden" for="event-end-time-${id}">To</label>
-            <input class="event__input event__input--time" id="event-end-time-${id}" type="text" name="event-end-time" value="${dateTo ? huminazeDate(dateTo, DateMap.get('DateTime')) : ''}" readonly ${isDisabled ? 'disabled' : ''}>
+            <input class="event__input event__input--time" id="event-end-time-${id}" type="text" name="event-end-time" value="${dateTo ? humanizeDate(dateTo, DateMap.get('DateTime')) : ''}" readonly ${isDisabled ? 'disabled' : ''}>
           </div>
           <div class="event__field-group event__field-group--price">
             <label class="event__label" for="event-price-${id}">

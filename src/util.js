@@ -1,4 +1,3 @@
-// util.js
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import duration from 'dayjs/plugin/duration';
@@ -7,9 +6,6 @@ import { SortType } from './const.js';
 dayjs.extend(utc);
 dayjs.extend(duration);
 
-const DEFAULT_POINTS_COUNT = 0;
-const LOADING_DELAY = 1000;
-
 const DateMap = new Map([
   ['MonthDay', 'MMM D'],
   ['DayMonthYear', 'DD/MM/YY'],
@@ -17,7 +13,7 @@ const DateMap = new Map([
   ['DateTime', 'DD/MM/YY HH:mm']
 ]);
 
-const huminazeDate = (date, format) => date ? dayjs(date).utc().format(format) : '';
+const humanizeDate = (date, format) => date ? dayjs(date).utc().format(format) : '';
 
 const getDateDifference = (start, end) => {
   const diff = dayjs(end).diff(dayjs(start));
@@ -36,12 +32,6 @@ const getDateDifference = (start, end) => {
   }
   return `${minutes}M`;
 };
-
-const getRandomInteger = (min, max) =>
-  Math.floor(Math.random() * (Math.floor(max) - Math.ceil(min) + 1) + Math.ceil(min));
-
-const getRandomArrElem = (array) =>
-  array[Math.floor(Math.random() * array.length)];
 
 const isEscapeKey = (evt) => evt.key === 'Escape' || evt.key === 'Esc';
 
@@ -95,15 +85,11 @@ const getFiltersData = (points) => {
 };
 
 export {
-  getRandomArrElem,
-  getRandomInteger,
   DateMap,
   getDateDifference,
-  huminazeDate,
+  humanizeDate,
   isEscapeKey,
   filterPoints,
   getFiltersData,
-  sortPoints,
-  DEFAULT_POINTS_COUNT,
-  LOADING_DELAY
+  sortPoints
 };

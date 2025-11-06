@@ -1,4 +1,3 @@
-// trip-model.js
 import Observable from '../framework/observable.js';
 import PointsModel from './points-model.js';
 import OffersModel from './offers-model.js';

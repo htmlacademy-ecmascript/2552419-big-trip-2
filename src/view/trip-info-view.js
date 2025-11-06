@@ -1,6 +1,5 @@
-// trip-info-view.js
 import AbstractView from '../framework/view/abstract-view.js';
-import { huminazeDate } from '../util.js';
+import { humanizeDate } from '../util.js';
 
 const createTripInfoTemplate = (points, destinations, totalCost) => {
   if (!points || points.length === 0) {
@@ -35,8 +34,8 @@ const createTripInfoTemplate = (points, destinations, totalCost) => {
   const startDate = sortedPoints[0].dateFrom;
   const endDate = sortedPoints[sortedPoints.length - 1].dateTo;
 
-  const startDateFormatted = huminazeDate(startDate, 'MMM DD');
-  const endDateFormatted = huminazeDate(endDate, 'MMM DD');
+  const startDateFormatted = humanizeDate(startDate, 'MMM DD');
+  const endDateFormatted = humanizeDate(endDate, 'MMM DD');
 
   return `
     <section class="trip-main__trip-info trip-info">
