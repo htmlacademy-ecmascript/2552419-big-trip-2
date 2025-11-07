@@ -44,7 +44,7 @@ const getDateDifference = (start, end) => {
   const formatNumber = (num) => num.toString().padStart(2, '0');
 
   if (days > 0) {
-    return `${days}D ${formatNumber(hours)}H ${formatNumber(minutes)}M`;
+    return `${formatNumber(days)}D ${formatNumber(hours)}H ${formatNumber(minutes)}M`;
   }
 
   if (hours > 0) {
