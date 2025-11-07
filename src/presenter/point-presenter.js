@@ -130,7 +130,10 @@ export default class PointPresenter {
   }
 
   #replaceFormToPoint() {
-    replace(this.#pointComponent, this.#pointEditComponent);
+    if (this.#pointEditComponent && this.#pointEditComponent.element.parentElement &&
+        this.#pointComponent && this.#pointComponent.element) {
+      replace(this.#pointComponent, this.#pointEditComponent);
+    }
     document.removeEventListener('keydown', this.#escKeyDownHandler);
     this.#mode = null;
   }

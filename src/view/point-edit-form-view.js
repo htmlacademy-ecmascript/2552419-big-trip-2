@@ -1,5 +1,5 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { DateMap, humanizeDate } from '../util.js';
+import { DateMap, humanizeDate, isEscapeKey } from '../util.js';
 import { POINT_TYPES } from '../const.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
@@ -34,6 +34,7 @@ const createPointOffers = (pointOffers, checkedOffers, isDisabled) => {
     </section>
   `;
 };
+
 const createPointEditFormTemplate = (state) => {
   const { point, offers, checkedOffers, destination, isNew, isTypeListOpen, isSaving, isDeleting } = state;
   const { id, type, basePrice, dateFrom, dateTo } = point;
@@ -180,6 +181,8 @@ export default class PointEditFormView extends AbstractStatefulView {
   }
 
   _restoreHandlers() {
+    document.addEventListener('keydown', this.#escKeyDownHandler);
+
     if (!this.#isNew) {
       const rollupBtn = this.element.querySelector('.event__rollup-btn');
       if (rollupBtn) {
@@ -239,6 +242,13 @@ export default class PointEditFormView extends AbstractStatefulView {
       isDeleting: true
     });
   }
+
+  #escKeyDownHandler = (evt) => {
+    if (isEscapeKey(evt)) {
+      evt.preventDefault();
+      this.#handleCloseClick();
+    }
+  };
 
   #resetClickHandler = (evt) => {
     evt.preventDefault();
@@ -480,6 +490,9 @@ export default class PointEditFormView extends AbstractStatefulView {
   };
 
   removeElement() {
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
+    document.removeEventListener('click', this.#outsideClickHandler);
+
     if (this.#datepickerFrom) {
       this.#datepickerFrom.destroy();
       this.#datepickerFrom = null;
@@ -489,8 +502,6 @@ export default class PointEditFormView extends AbstractStatefulView {
       this.#datepickerTo.destroy();
       this.#datepickerTo = null;
     }
-
-    document.removeEventListener('click', this.#outsideClickHandler);
 
     super.removeElement();
   }
