@@ -10,13 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const tripMainContainer = document.querySelector('.trip-main');
   const filtersContainer = document.querySelector('.trip-controls__filters');
 
-  if (!tripEventsContainer) {
-    console.error('Trip events container not found');
-    return;
-  }
-
-  if (!tripMainContainer) {
-    console.error('Trip main container not found');
+  if (!tripEventsContainer || !tripMainContainer) {
     return;
   }
 

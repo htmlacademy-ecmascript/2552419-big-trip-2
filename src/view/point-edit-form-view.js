@@ -34,7 +34,6 @@ const createPointOffers = (pointOffers, checkedOffers, isDisabled) => {
     </section>
   `;
 };
-
 const createPointEditFormTemplate = (state) => {
   const { point, offers, checkedOffers, destination, isNew, isTypeListOpen, isSaving, isDeleting } = state;
   const { id, type, basePrice, dateFrom, dateTo } = point;
@@ -119,7 +118,7 @@ const createPointEditFormTemplate = (state) => {
             </label>
             <input class="event__input event__input--price" id="event-price-${id}" type="number" name="event-price" value="${basePrice}" min="0" required ${isDisabled ? 'disabled' : ''}>
           </div>
-          <button class="event__save-btn btn btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${saveButtonText}</button>
+         <button class="event__save-btn btn btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${saveButtonText}</button>
           <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${deleteButtonText}</button>
           ${!isNew ? `
             <button class="event__rollup-btn" type="button" ${isDisabled ? 'disabled' : ''}>

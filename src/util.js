@@ -10,23 +10,30 @@ const DateMap = new Map([
   ['MonthDay', 'MMM D'],
   ['DayMonthYear', 'DD/MM/YY'],
   ['HoursMinutes', 'HH:mm'],
-  ['DateTime', 'DD/MM/YY HH:mm']
+  ['DateTime', 'DD/MM/YY HH:mm'],
+  ['DayMonth', 'DD MMM']
 ]);
 
 const humanizeDate = (date, format) => {
   if (!date) {
     return '';
   }
- const dateObj = dayjs(date);
+
+  const dateObj = dayjs(date);
   let formatted = dateObj.format(format);
 
-  if (format === 'MMM D' || format === 'MMM') {
-    formatted = formatted.toLowerCase();
+  if (format === 'DD MMM') {
+    formatted = formatted.toUpperCase();
   }
 
   return formatted;
 };
+
 const getDateDifference = (start, end) => {
+  if (!start || !end) {
+    return '';
+  }
+
   const diff = dayjs(end).diff(dayjs(start));
   const durationObj = dayjs.duration(diff);
 
@@ -37,14 +44,14 @@ const getDateDifference = (start, end) => {
   const formatNumber = (num) => num.toString().padStart(2, '0');
 
   if (days > 0) {
-    return `${formatNumber(days)}d ${formatNumber(hours)}h ${formatNumber(minutes)}m`;
+    return `${days}D ${formatNumber(hours)}H ${formatNumber(minutes)}M`;
   }
 
   if (hours > 0) {
-    return `${formatNumber(hours)}h ${formatNumber(minutes)}m`;
+    return `${formatNumber(hours)}H ${formatNumber(minutes)}M`;
   }
 
-  return `${formatNumber(minutes)}m`;
+  return `${formatNumber(minutes)}M`;
 };
 
 const isEscapeKey = (evt) => evt.key === 'Escape' || evt.key === 'Esc';

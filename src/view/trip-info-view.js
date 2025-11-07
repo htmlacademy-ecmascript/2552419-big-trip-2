@@ -3,17 +3,7 @@ import { humanizeDate } from '../util.js';
 
 const createTripInfoTemplate = (points, destinations, totalCost) => {
   if (!points || points.length === 0) {
-    return `
-      <section class="trip-main__trip-info trip-info">
-        <div class="trip-info__main">
-          <h1 class="trip-info__title">No points yet</h1>
-          <p class="trip-info__dates"></p>
-        </div>
-        <p class="trip-info__cost">
-          Total: &euro;&nbsp;<span class="trip-info__cost-value">0</span>
-        </p>
-      </section>
-    `;
+    return '';
   }
 
   const sortedPoints = points.sort((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom));
@@ -21,7 +11,7 @@ const createTripInfoTemplate = (points, destinations, totalCost) => {
   const routeDestinations = [];
   sortedPoints.forEach(point => {
     const destination = destinations.find(dest => dest.id === point.destination);
-    if (destination && !routeDestinations.includes(destination.name)) {
+    if (destination) {
       routeDestinations.push(destination.name);
     }
   });
@@ -34,8 +24,8 @@ const createTripInfoTemplate = (points, destinations, totalCost) => {
   const startDate = sortedPoints[0].dateFrom;
   const endDate = sortedPoints[sortedPoints.length - 1].dateTo;
 
-  const startDateFormatted = humanizeDate(startDate, 'MMM DD');
-  const endDateFormatted = humanizeDate(endDate, 'MMM DD');
+  const startDateFormatted = humanizeDate(startDate, 'DD MMM').toUpperCase();
+  const endDateFormatted = humanizeDate(endDate, 'DD MMM').toUpperCase();
 
   return `
     <section class="trip-main__trip-info trip-info">

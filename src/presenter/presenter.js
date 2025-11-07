@@ -49,9 +49,15 @@ export default class Presenter {
 
   init = async () => {
     this.#renderLoading();
-    await this.#tripModel.init();
-    this.#isLoading = false;
-    this.#renderTripEvents();
+    try {
+      await this.#tripModel.init();
+      this.#isLoading = false;
+      this.#renderTripEvents();
+    } catch (error) {
+      this.#isLoading = false;
+      this.#isLoadingFailed = true;
+      this.#renderFailedLoad();
+    }
   };
 
   createNewPoint = () => {
@@ -107,10 +113,10 @@ export default class Presenter {
     return {
       id: null,
       type: 'flight',
-      dateFrom: null,
-      dateTo: null,
+      dateFrom: new Date().toISOString(),
+      dateTo: new Date(Date.now() + 3600000).toISOString(),
       destination: defaultDestination ? defaultDestination.id : null,
-      basePrice: 0,
+      basePrice: 100,
       isFavorite: false,
       offers: []
     };
@@ -121,14 +127,14 @@ export default class Presenter {
 
     this.#newPointPresenter.setSaving();
 
-    if (!this.#validatePoint(point)) {
+    try {
+      await this.#tripModel.addPoint('MINOR', point);
+      this.#handleNewPointClose();
+    } catch (err) {
       this.#newPointPresenter.setAborting();
-      return;
+    } finally {
+      this.#uiBlocker.unblock();
     }
-
-    await this.#tripModel.addPoint('MINOR', point);
-    this.#handleNewPointClose();
-    this.#uiBlocker.unblock();
   };
 
   #handleNewPointClose = () => {
@@ -138,30 +144,6 @@ export default class Presenter {
     }
 
     this.#renderTripEvents();
-  };
-
-  #validatePoint = (point) => {
-    const destinationInput = document.querySelector('.event__input--destination');
-    const destinationName = destinationInput?.value;
-    const isValidDestination = this.#tripModel.destinations.some(dest => dest.name === destinationName);
-
-    if (!isValidDestination) {
-      destinationInput?.focus();
-      return false;
-    }
-
-    const dateFrom = new Date(point.dateFrom);
-    const dateTo = new Date(point.dateTo);
-
-    if (dateFrom >= dateTo) {
-      return false;
-    }
-
-    if (point.basePrice <= 0) {
-      return false;
-    }
-
-    return true;
   };
 
   #renderTripInfo = () => {
@@ -212,14 +194,19 @@ export default class Presenter {
 
   #renderTripEvents = () => {
     this.#clearTripEvents();
-
+  
     if (this.#isLoading) {
       this.#renderLoading();
       return;
     }
-
+  
+    if (this.#isLoadingFailed) {
+      this.#renderFailedLoad();
+      return;
+    }
+  
     const filteredPoints = this.#getFilteredPoints(this.#currentFilter);
-
+  
     if (filteredPoints.length === 0) {
       this.#renderEmptyList(this.#currentFilter);
       return;
@@ -303,18 +290,22 @@ export default class Presenter {
   };
 
   #handleViewAction = async (actionType, updateType, update) => {
-    switch (actionType) {
-      case UserAction.UPDATE_POINT:
-        this.#pointPresenters.get(update.id).setSaving();
-        await this.#tripModel.updatePoint(updateType, update);
-        break;
-      case UserAction.ADD_POINT:
-        await this.#tripModel.addPoint(updateType, update);
-        break;
-      case UserAction.DELETE_POINT:
-        this.#pointPresenters.get(update.id).setDeleting();
-        await this.#tripModel.deletePoint(updateType, update);
-        break;
+    try {
+      switch (actionType) {
+        case UserAction.UPDATE_POINT:
+          this.#pointPresenters.get(update.id).setSaving();
+          await this.#tripModel.updatePoint(updateType, update);
+          break;
+        case UserAction.ADD_POINT:
+          await this.#tripModel.addPoint(updateType, update);
+          break;
+        case UserAction.DELETE_POINT:
+          this.#pointPresenters.get(update.id).setDeleting();
+          await this.#tripModel.deletePoint(updateType, update);
+          break;
+      }
+    } catch (err) {
+      this.#pointPresenters.get(update.id).setAborting();
     }
   };
 
@@ -343,6 +334,11 @@ export default class Presenter {
         this.#updateFilters();
         this.#renderTripEvents();
         break;
+      case 'ERROR':
+        this.#isLoading = false;
+        this.#isLoadingFailed = true;
+        this.#renderTripEvents();
+        break;
     }
   };
 
@@ -359,7 +355,18 @@ export default class Presenter {
     if (this.#tripInfoComponent) {
       remove(this.#tripInfoComponent);
     }
-    this.#renderTripInfo();
+    
+    const points = this.#tripModel.points;
+    if (points && points.length > 0) {
+      const destinations = this.#tripModel.destinations;
+      const totalCost = this.#tripModel.calculateTotalCost();
+      this.#tripInfoComponent = new TripInfoView({
+        points,
+        destinations,
+        totalCost
+      });
+      render(this.#tripInfoComponent, this.#tripInfoContainer);
+    }
   };
 
   #updateFilters = () => {

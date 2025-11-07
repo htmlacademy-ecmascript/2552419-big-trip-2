@@ -15,6 +15,7 @@ export default class PointPresenter {
   #pointComponent = null;
   #pointEditComponent = null;
   #point = null;
+  #mode = null;
 
   constructor(container, tripModel, onDataChange, onModeChange) {
     this.#container = container;
@@ -35,11 +36,8 @@ export default class PointPresenter {
 
     const offers = this.#tripModel.getOffersById(point.type, point.offers);
     const destination = this.#tripModel.getDestinationById(point.destination);
-    const allDestinations = this.#tripModel.destinations;
-    const allOffers = this.#tripModel.offers;
 
     if (!destination) {
-      console.warn(`Destination not found for point ${point.id}`);
       return;
     }
 
@@ -56,8 +54,8 @@ export default class PointPresenter {
       offers: this.#tripModel.getOffersByType(point.type),
       checkedOffers: offers,
       destination: destination,
-      allDestinations: allDestinations,
-      allOffers: allOffers,
+      allDestinations: this.#tripModel.destinations,
+      allOffers: this.#tripModel.offers,
       isNew: false,
       onSubmit: this.#handleFormSubmit,
       onClose: this.#handleCloseClick,
@@ -67,6 +65,11 @@ export default class PointPresenter {
     if (prevPointComponent === null || prevPointEditComponent === null) {
       render(this.#pointComponent, this.#container);
       return;
+    }
+
+    if (this.#mode === 'EDIT') {
+      replace(this.#pointComponent, prevPointEditComponent);
+      this.#mode = null;
     }
 
     if (this.#container.contains(prevPointComponent.element)) {
@@ -88,25 +91,26 @@ export default class PointPresenter {
   }
 
   resetView() {
-    if (this.#pointEditComponent && this.#container.contains(this.#pointEditComponent.element)) {
-      this.#replaceFormToPoint();
+    if (this.#mode !== 'EDIT') {
+      return;
     }
+    this.#replaceFormToPoint();
   }
 
   setSaving() {
-    if (this.#pointEditComponent) {
+    if (this.#mode === 'EDIT') {
       this.#pointEditComponent.setSaving();
     }
   }
 
   setDeleting() {
-    if (this.#pointEditComponent) {
+    if (this.#mode === 'EDIT') {
       this.#pointEditComponent.setDeleting();
     }
   }
 
   setAborting() {
-    if (this.#pointEditComponent) {
+    if (this.#mode === 'EDIT') {
       const resetFormState = () => {
         this.#pointEditComponent.updateElement({
           isSaving: false,
@@ -122,11 +126,13 @@ export default class PointPresenter {
     this.#handleModeChange();
     replace(this.#pointEditComponent, this.#pointComponent);
     document.addEventListener('keydown', this.#escKeyDownHandler);
+    this.#mode = 'EDIT';
   }
 
   #replaceFormToPoint() {
     replace(this.#pointComponent, this.#pointEditComponent);
     document.removeEventListener('keydown', this.#escKeyDownHandler);
+    this.#mode = null;
   }
 
   #escKeyDownHandler = (evt) => {

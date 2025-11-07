@@ -25,7 +25,7 @@ const createFiltersTemplate = (filters, currentFilter) => `
   <form class="trip-filters" action="#" method="get">
     ${filters.map((filter) => {
       const isChecked = filter.type === currentFilter;
-      const isDisabled = filter.count === 0 && !isChecked;
+      const isDisabled = filter.count === 0;
       return createFilterItemTemplate(filter, isChecked, isDisabled);
     }).join('')}
     <button class="visually-hidden" type="submit">Accept filter</button>

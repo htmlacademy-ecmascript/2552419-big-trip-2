@@ -37,8 +37,8 @@ export default class TripModel extends Observable {
         this.#destinationsModel.init()
       ]);
       this._notify('INIT');
-    } catch (err) {
-      this._notify('INIT', { error: err });
+    } catch (error) {
+      this._notify('ERROR');
     }
   };
 
