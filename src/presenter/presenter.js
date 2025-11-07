@@ -194,19 +194,19 @@ export default class Presenter {
 
   #renderTripEvents = () => {
     this.#clearTripEvents();
-  
+
     if (this.#isLoading) {
       this.#renderLoading();
       return;
     }
-  
+
     if (this.#isLoadingFailed) {
       this.#renderFailedLoad();
       return;
     }
-  
+
     const filteredPoints = this.#getFilteredPoints(this.#currentFilter);
-  
+
     if (filteredPoints.length === 0) {
       this.#renderEmptyList(this.#currentFilter);
       return;
@@ -216,16 +216,14 @@ export default class Presenter {
     this.#renderPointsList();
     this.#renderPoints(filteredPoints);
   };
-
   #renderSorting = () => {
     this.#sortingComponent = new SortingView({
-      currentSortType: this.#currentSortType,
+      currentSortType: this.#currentSortType, 
       onSortTypeChange: this.#handleSortTypeChange
     });
 
     render(this.#sortingComponent, this.#tripEventsContainer);
   };
-
   #renderPointsList = () => {
     this.#pointsListComponent = new PointsListView();
     render(this.#pointsListComponent, this.#tripEventsContainer);
@@ -285,6 +283,7 @@ export default class Presenter {
 
   #handleFilterChange = (filterType) => {
     this.#currentFilter = filterType;
+    this.#currentSortType = SortType.DAY;
     this.#clearPoints();
     this.#renderTripEvents();
   };
@@ -355,7 +354,7 @@ export default class Presenter {
     if (this.#tripInfoComponent) {
       remove(this.#tripInfoComponent);
     }
-    
+
     const points = this.#tripModel.points;
     if (points && points.length > 0) {
       const destinations = this.#tripModel.destinations;
