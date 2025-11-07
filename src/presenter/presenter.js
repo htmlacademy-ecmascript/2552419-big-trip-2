@@ -65,7 +65,6 @@ export default class Presenter {
     this.#currentSortType = SortType.DAY;
     this.#handleModeChange();
     this.#updateFilters();
-    this.#clearTripEvents();
     this.#renderNewPointForm();
   };
 
@@ -89,7 +88,11 @@ export default class Presenter {
       onDelete: this.#handleNewPointClose
     });
 
-    render(pointEditComponent, this.#tripEventsContainer);
+    this.#clearTripEvents();
+    this.#renderSorting();
+    this.#renderPointsList();
+    this.#renderPoints(this.#getFilteredPoints(this.#currentFilter));
+    render(pointEditComponent, this.#pointsListComponent.element, 'afterbegin');
 
     this.#newPointPresenter = {
       component: pointEditComponent,
@@ -147,7 +150,6 @@ export default class Presenter {
       this.#newPointPresenter = null;
     }
 
-    this.#clearTripEvents();
     this.#renderTripEvents();
   };
 
@@ -251,10 +253,12 @@ export default class Presenter {
       return;
     }
 
-    if (filteredPoints.length > 0) {
+    if (filteredPoints.length > 0 || this.#newPointPresenter) {
       this.#renderSorting();
       this.#renderPointsList();
-      this.#renderPoints(filteredPoints);
+      if (!this.#newPointPresenter) {
+        this.#renderPoints(filteredPoints);
+      }
     }
   };
 
