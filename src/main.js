@@ -8,6 +8,7 @@ const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
 const tripEventsContainer = document.querySelector('.trip-events');
 const tripMainContainer = document.querySelector('.trip-main');
 const filtersContainer = document.querySelector('.trip-controls__filters');
+const newEventButton = document.querySelector('.trip-main__event-add-btn');
 
 if (!tripEventsContainer || !tripMainContainer) {
   throw new Error('Required DOM elements not found');
@@ -36,15 +37,15 @@ const presenter = new Presenter(
   tripEventsContainer,
   tripInfoContainer,
   actualFiltersContainer,
-  tripModel
+  tripModel,
+  newEventButton
 );
 
 presenter.init();
 
-const newEventButton = document.querySelector('.trip-main__event-add-btn');
 if (newEventButton) {
-  newEventButton.disabled = false;
   newEventButton.addEventListener('click', () => {
     presenter.createNewPoint();
   });
 }
+

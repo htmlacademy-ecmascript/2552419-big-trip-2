@@ -24,6 +24,7 @@ export default class Presenter {
   #tripEventsContainer = null;
   #tripInfoContainer = null;
   #filtersContainer = null;
+  #newEventButton = null;
 
   #tripModel = null;
   #pointPresenters = new Map();
@@ -34,11 +35,12 @@ export default class Presenter {
   #newPointPresenter = null;
   #uiBlocker = null;
 
-  constructor(tripEventsContainer, tripInfoContainer, filtersContainer, tripModel) {
+  constructor(tripEventsContainer, tripInfoContainer, filtersContainer, tripModel, newEventButton) {
     this.#tripEventsContainer = tripEventsContainer;
     this.#tripInfoContainer = tripInfoContainer;
     this.#filtersContainer = filtersContainer;
     this.#tripModel = tripModel;
+    this.#newEventButton = newEventButton;
     this.#uiBlocker = new UiBlocker({
       lowerLimit: LOWER_LIMIT,
       upperLimit: UPPER_LIMIT
@@ -52,10 +54,12 @@ export default class Presenter {
     try {
       await this.#tripModel.init();
       this.#isLoading = false;
+      this.#setNewEventButtonState(false);
       this.#renderTripEvents();
     } catch (error) {
       this.#isLoading = false;
       this.#isLoadingFailed = true;
+      this.#setNewEventButtonState(true);
       this.#renderTripEvents();
     }
   };
@@ -65,13 +69,20 @@ export default class Presenter {
     this.#currentSortType = SortType.DAY;
     this.#handleModeChange();
     this.#updateFilters();
+    this.#setNewEventButtonState(true);
     this.#renderNewPointForm();
+  };
+
+  #setNewEventButtonState = (isDisabled) => {
+    if (this.#newEventButton) {
+      this.#newEventButton.disabled = isDisabled;
+    }
   };
 
   #renderNewPointForm = () => {
     const newPoint = this.#createNewPoint();
     const offers = this.#tripModel.getOffersByType(newPoint.type);
-    const destination = this.#tripModel.destinations[0];
+    const destination = null;
     const allDestinations = this.#tripModel.destinations;
     const allOffers = this.#tripModel.offers;
 
@@ -115,15 +126,13 @@ export default class Presenter {
   };
 
   #createNewPoint = () => {
-    const defaultDestination = this.#tripModel.destinations[0];
-
     return {
       id: null,
       type: 'flight',
-      dateFrom: new Date().toISOString(),
-      dateTo: new Date(Date.now() + 3600000).toISOString(),
-      destination: defaultDestination ? defaultDestination.id : null,
-      basePrice: 100,
+      dateFrom: null,
+      dateTo: null,
+      destination: null,
+      basePrice: 0,
       isFavorite: false,
       offers: []
     };
@@ -150,6 +159,7 @@ export default class Presenter {
       this.#newPointPresenter = null;
     }
 
+    this.#setNewEventButtonState(false);
     this.#renderTripEvents();
   };
 

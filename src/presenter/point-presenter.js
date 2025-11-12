@@ -17,6 +17,8 @@ export default class PointPresenter {
   #point = null;
   #mode = null;
 
+  #originalPoint = null;
+
   constructor(container, tripModel, onDataChange, onModeChange) {
     this.#container = container;
     this.#tripModel = tripModel;
@@ -30,16 +32,13 @@ export default class PointPresenter {
 
   init(point) {
     this.#point = point;
+    this.#originalPoint = { ...point };
 
     const prevPointComponent = this.#pointComponent;
     const prevPointEditComponent = this.#pointEditComponent;
 
     const offers = this.#tripModel.getOffersById(point.type, point.offers);
     const destination = this.#tripModel.getDestinationById(point.destination);
-
-    if (!destination) {
-      return;
-    }
 
     this.#pointComponent = new PointView({
       point: this.#point,
@@ -94,6 +93,9 @@ export default class PointPresenter {
     if (this.#mode !== 'EDIT') {
       return;
     }
+
+
+    this.#point = { ...this.#originalPoint };
     this.#replaceFormToPoint();
   }
 
@@ -141,7 +143,7 @@ export default class PointPresenter {
   #escKeyDownHandler = (evt) => {
     if (isEscapeKey(evt)) {
       evt.preventDefault();
-      this.#replaceFormToPoint();
+      this.resetView();
     }
   };
 
@@ -169,6 +171,8 @@ export default class PointPresenter {
         'MINOR',
         point
       );
+
+      this.#originalPoint = { ...point };
     } catch(err) {
       this.setAborting();
     } finally {
@@ -177,7 +181,7 @@ export default class PointPresenter {
   };
 
   #handleCloseClick = () => {
-    this.#replaceFormToPoint();
+    this.resetView();
   };
 
   #handleDeleteClick = async () => {
@@ -196,3 +200,4 @@ export default class PointPresenter {
     }
   };
 }
+
