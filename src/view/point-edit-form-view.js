@@ -4,7 +4,7 @@ import { POINT_TYPES } from '../const.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
-const createPointEditFormTemplate = (point, offers, checkedOffers, destination, allDestinations, allOffers, isNew, isSaving, isDeleting) => {
+const createPointEditFormTemplate = (point, offers, checkedOffers, destination, allDestinations, allOffers, isNew) => {
   const { type, dateFrom, dateTo, basePrice, isFavorite } = point;
 
   const favoriteChecked = isFavorite ? 'checked' : '';
@@ -62,9 +62,7 @@ const createPointEditFormTemplate = (point, offers, checkedOffers, destination, 
     </section>
   ` : '';
 
-  const saveButtonText = isSaving ? 'Saving...' : 'Save';
-  const deleteButtonText = isDeleting ? 'Deleting...' : 'Delete';
-  const resetButtonText = isNew ? 'Cancel' : deleteButtonText;
+  const resetButtonText = isNew ? 'Cancel' : 'Delete';
 
   return `
     <li class="trip-events__item">
@@ -111,8 +109,8 @@ const createPointEditFormTemplate = (point, offers, checkedOffers, destination, 
             <input class="event__input event__input--price" id="event-price-1" type="number" name="event-price" value="${basePrice}" min="0" required>
           </div>
 
-          <button class="event__save-btn btn btn--blue" type="submit" ${isSaving ? 'disabled' : ''}>${saveButtonText}</button>
-          <button class="event__reset-btn" type="button" ${isDeleting ? 'disabled' : ''}>${resetButtonText}</button>
+          <button class="event__save-btn btn btn--blue" type="submit">Save</button>
+          <button class="event__reset-btn" type="button">${resetButtonText}</button>
           ${!isNew ? '<button class="event__rollup-btn" type="button"><span class="visually-hidden">Open event</span></button>' : ''}
           <input id="event-favorite-1" class="event__favorite-checkbox visually-hidden" type="checkbox" name="event-favorite" ${favoriteChecked}>
           <label class="event__favorite-btn" for="event-favorite-1">
@@ -145,20 +143,10 @@ export default class PointEditFormView extends AbstractStatefulView {
   #dateToPicker = null;
   #escKeyDownHandler = null;
 
-  #initialState = null;
-  #initialOffers = null;
-  #initialCheckedOffers = null;
-  #initialDestination = null;
-
   constructor({ point, offers, checkedOffers, destination, allDestinations, allOffers, isNew, onSubmit, onClose, onDelete }) {
     super();
 
-    this.#initialState = PointEditFormView.parsePointToState(point);
-    this.#initialOffers = offers;
-    this.#initialCheckedOffers = checkedOffers;
-    this.#initialDestination = destination;
-
-    this._setState(this.#initialState);
+    this._setState(PointEditFormView.parsePointToState(point));
     this.#offers = offers;
     this.#checkedOffers = checkedOffers;
     this.#destination = destination;
@@ -182,9 +170,7 @@ export default class PointEditFormView extends AbstractStatefulView {
       this.#destination,
       this.#allDestinations,
       this.#allOffers,
-      this.#isNew,
-      this._state.isSaving,
-      this._state.isDeleting
+      this.#isNew
     );
   }
 
@@ -202,6 +188,36 @@ export default class PointEditFormView extends AbstractStatefulView {
     document.removeEventListener('keydown', this.#escKeyDownHandler);
 
     super.removeElement();
+  }
+
+  setSaving() {
+    const saveButton = this.element.querySelector('.event__save-btn');
+    if (saveButton) {
+      saveButton.textContent = 'Saving...';
+      saveButton.disabled = true;
+    }
+  }
+
+  setDeleting() {
+    const resetButton = this.element.querySelector('.event__reset-btn');
+    if (resetButton && !this.#isNew) {
+      resetButton.textContent = 'Deleting...';
+      resetButton.disabled = true;
+    }
+  }
+
+  setAborting() {
+    const saveButton = this.element.querySelector('.event__save-btn');
+    if (saveButton) {
+      saveButton.textContent = 'Save';
+      saveButton.disabled = false;
+    }
+
+    const resetButton = this.element.querySelector('.event__reset-btn');
+    if (resetButton) {
+      resetButton.textContent = this.#isNew ? 'Cancel' : 'Delete';
+      resetButton.disabled = false;
+    }
   }
 
   _restoreHandlers() {
@@ -268,31 +284,7 @@ export default class PointEditFormView extends AbstractStatefulView {
   #onEscKeyDown(evt) {
     if (isEscapeKey(evt)) {
       evt.preventDefault();
-      this.#resetToInitialState();
       this.#handleClose();
-    }
-  }
-
-  #resetToInitialState() {
-    if (!this.#isNew) {
-      this._setState(this.#initialState);
-      this.#offers = this.#initialOffers;
-      this.#checkedOffers = this.#initialCheckedOffers;
-      this.#destination = this.#initialDestination;
-    } else {
-      this._setState(PointEditFormView.parsePointToState({
-        id: null,
-        type: 'flight',
-        dateFrom: null,
-        dateTo: null,
-        destination: null,
-        basePrice: 0,
-        isFavorite: false,
-        offers: []
-      }));
-      this.#offers = this.#allOffers.find((offer) => offer.type === 'flight') || { offers: [] };
-      this.#checkedOffers = [];
-      this.#destination = null;
     }
   }
 
@@ -320,7 +312,6 @@ export default class PointEditFormView extends AbstractStatefulView {
   #resetButtonClickHandler = (evt) => {
     evt.preventDefault();
     if (this.#isNew) {
-      this.#resetToInitialState();
       this.#handleClose();
     } else {
       this.#handleDelete();
@@ -329,7 +320,6 @@ export default class PointEditFormView extends AbstractStatefulView {
 
   #rollupButtonClickHandler = (evt) => {
     evt.preventDefault();
-    this.#resetToInitialState();
     this.#handleClose();
   };
 
@@ -409,30 +399,11 @@ export default class PointEditFormView extends AbstractStatefulView {
     });
   };
 
-  setSaving() {
-    this.updateElement({
-      isSaving: true
-    });
-  }
-
-  setDeleting() {
-    this.updateElement({
-      isDeleting: true
-    });
-  }
-
   static parsePointToState(point) {
-    return {
-      ...point,
-      isSaving: false,
-      isDeleting: false
-    };
+    return { ...point };
   }
 
   static parseStateToPoint(state) {
-    const point = { ...state };
-    delete point.isSaving;
-    delete point.isDeleting;
-    return point;
+    return { ...state };
   }
 }

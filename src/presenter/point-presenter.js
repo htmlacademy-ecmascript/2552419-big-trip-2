@@ -15,6 +15,7 @@ export default class PointPresenter {
   #pointComponent = null;
   #pointEditComponent = null;
   #point = null;
+  #originalPoint = null;
   #mode = null;
 
   constructor(container, tripModel, onDataChange, onModeChange) {
@@ -30,6 +31,7 @@ export default class PointPresenter {
 
   init(point) {
     this.#point = point;
+    this.#originalPoint = { ...point };
 
     const prevPointComponent = this.#pointComponent;
     const prevPointEditComponent = this.#pointEditComponent;
@@ -107,14 +109,7 @@ export default class PointPresenter {
 
   setAborting() {
     if (this.#mode === 'EDIT') {
-      const resetFormState = () => {
-        this.#pointEditComponent.updateElement({
-          isSaving: false,
-          isDeleting: false
-        });
-      };
-
-      this.#pointEditComponent.shake(resetFormState);
+      this.#pointEditComponent.shake();
     } else {
       this.#pointComponent.shake();
     }
@@ -128,10 +123,15 @@ export default class PointPresenter {
   }
 
   #replaceFormToPoint() {
-    if (this.#pointEditComponent && this.#pointEditComponent.element.parentElement &&
-        this.#pointComponent && this.#pointComponent.element) {
-      replace(this.#pointComponent, this.#pointEditComponent);
+    if (!this.#pointEditComponent || !this.#pointEditComponent.element || !this.#pointEditComponent.element.parentElement) {
+      return;
     }
+
+    if (!this.#pointComponent || !this.#pointComponent.element) {
+      return;
+    }
+
+    replace(this.#pointComponent, this.#pointEditComponent);
     document.removeEventListener('keydown', this.#escKeyDownHandler);
     this.#mode = null;
   }
@@ -139,9 +139,24 @@ export default class PointPresenter {
   #escKeyDownHandler = (evt) => {
     if (isEscapeKey(evt)) {
       evt.preventDefault();
+      this.#restoreOriginalPoint();
       this.#replaceFormToPoint();
     }
   };
+
+  #restoreOriginalPoint() {
+    this.#point = { ...this.#originalPoint };
+    const offers = this.#tripModel.getOffersById(this.#point.type, this.#point.offers);
+    const destination = this.#tripModel.getDestinationById(this.#point.destination);
+
+    this.#pointComponent = new PointView({
+      point: this.#point,
+      offers: offers,
+      destination: destination,
+      onEditClick: this.#handleEditClick,
+      onFavoriteClick: this.#handleFavoriteClick
+    });
+  }
 
   #handleEditClick = () => {
     this.#replacePointToForm();
@@ -175,6 +190,7 @@ export default class PointPresenter {
   };
 
   #handleCloseClick = () => {
+    this.#restoreOriginalPoint();
     this.#replaceFormToPoint();
   };
 

@@ -113,15 +113,7 @@ export default class Presenter {
         }
       },
       setSaving: () => pointEditComponent.setSaving(),
-      setAborting: () => {
-        const resetFormState = () => {
-          pointEditComponent.updateElement({
-            isSaving: false,
-            isDeleting: false
-          });
-        };
-        pointEditComponent.shake(resetFormState);
-      }
+      setAborting: () => pointEditComponent.shake()
     };
   };
 
