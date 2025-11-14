@@ -93,6 +93,7 @@ export default class PointPresenter {
       return;
     }
     this.#replaceFormToPoint();
+    this.#restoreOriginalState();
   }
 
   setSaving() {
@@ -110,6 +111,7 @@ export default class PointPresenter {
   setAborting() {
     if (this.#mode === 'EDIT') {
       this.#pointEditComponent.shake();
+      this.#pointEditComponent.setAborting();
     } else {
       this.#pointComponent.shake();
     }
@@ -123,11 +125,7 @@ export default class PointPresenter {
   }
 
   #replaceFormToPoint() {
-    if (!this.#pointEditComponent || !this.#pointEditComponent.element || !this.#pointEditComponent.element.parentElement) {
-      return;
-    }
-
-    if (!this.#pointComponent || !this.#pointComponent.element) {
+    if (!this.#pointEditComponent?.element?.parentElement || !this.#pointComponent?.element) {
       return;
     }
 
@@ -139,23 +137,39 @@ export default class PointPresenter {
   #escKeyDownHandler = (evt) => {
     if (isEscapeKey(evt)) {
       evt.preventDefault();
-      this.#restoreOriginalPoint();
-      this.#replaceFormToPoint();
+      this.resetView();
     }
   };
 
-  #restoreOriginalPoint() {
+  #restoreOriginalState() {
     this.#point = { ...this.#originalPoint };
     const offers = this.#tripModel.getOffersById(this.#point.type, this.#point.offers);
     const destination = this.#tripModel.getDestinationById(this.#point.destination);
 
-    this.#pointComponent = new PointView({
+    const newPointComponent = new PointView({
       point: this.#point,
       offers: offers,
       destination: destination,
       onEditClick: this.#handleEditClick,
       onFavoriteClick: this.#handleFavoriteClick
     });
+
+    const newPointEditComponent = new PointEditFormView({
+      point: this.#point,
+      offers: this.#tripModel.getOffersByType(this.#point.type),
+      checkedOffers: offers,
+      destination: destination,
+      allDestinations: this.#tripModel.destinations,
+      allOffers: this.#tripModel.offers,
+      isNew: false,
+      onSubmit: this.#handleFormSubmit,
+      onClose: this.#handleCloseClick,
+      onDelete: this.#handleDeleteClick
+    });
+
+    replace(newPointComponent, this.#pointComponent);
+    this.#pointComponent = newPointComponent;
+    this.#pointEditComponent = newPointEditComponent;
   }
 
   #handleEditClick = () => {
@@ -190,8 +204,7 @@ export default class PointPresenter {
   };
 
   #handleCloseClick = () => {
-    this.#restoreOriginalPoint();
-    this.#replaceFormToPoint();
+    this.resetView();
   };
 
   #handleDeleteClick = async () => {
