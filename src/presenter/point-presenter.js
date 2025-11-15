@@ -15,6 +15,8 @@ export default class PointPresenter {
   #pointComponent = null;
   #pointEditComponent = null;
   #point = null;
+  #originalPoint = null;
+  #mode = null;
 
   constructor(container, tripModel, onDataChange, onModeChange) {
     this.#container = container;
@@ -29,19 +31,13 @@ export default class PointPresenter {
 
   init(point) {
     this.#point = point;
+    this.#originalPoint = { ...point };
 
     const prevPointComponent = this.#pointComponent;
     const prevPointEditComponent = this.#pointEditComponent;
 
     const offers = this.#tripModel.getOffersById(point.type, point.offers);
     const destination = this.#tripModel.getDestinationById(point.destination);
-    const allDestinations = this.#tripModel.destinations;
-    const allOffers = this.#tripModel.offers;
-
-    if (!destination) {
-      console.warn(`Destination not found for point ${point.id}`);
-      return;
-    }
 
     this.#pointComponent = new PointView({
       point: this.#point,
@@ -56,8 +52,8 @@ export default class PointPresenter {
       offers: this.#tripModel.getOffersByType(point.type),
       checkedOffers: offers,
       destination: destination,
-      allDestinations: allDestinations,
-      allOffers: allOffers,
+      allDestinations: this.#tripModel.destinations,
+      allOffers: this.#tripModel.offers,
       isNew: false,
       onSubmit: this.#handleFormSubmit,
       onClose: this.#handleCloseClick,
@@ -67,6 +63,11 @@ export default class PointPresenter {
     if (prevPointComponent === null || prevPointEditComponent === null) {
       render(this.#pointComponent, this.#container);
       return;
+    }
+
+    if (this.#mode === 'EDIT') {
+      replace(this.#pointComponent, prevPointEditComponent);
+      this.#mode = null;
     }
 
     if (this.#container.contains(prevPointComponent.element)) {
@@ -88,33 +89,32 @@ export default class PointPresenter {
   }
 
   resetView() {
-    if (this.#pointEditComponent && this.#container.contains(this.#pointEditComponent.element)) {
-      this.#replaceFormToPoint();
+    if (this.#mode !== 'EDIT') {
+      return;
     }
+    this.#replaceFormToPoint();
+    this.#restoreOriginalState();
   }
 
   setSaving() {
-    if (this.#pointEditComponent) {
+    if (this.#mode === 'EDIT') {
       this.#pointEditComponent.setSaving();
     }
   }
 
   setDeleting() {
-    if (this.#pointEditComponent) {
+    if (this.#mode === 'EDIT') {
       this.#pointEditComponent.setDeleting();
     }
   }
 
   setAborting() {
-    if (this.#pointEditComponent) {
-      const resetFormState = () => {
-        this.#pointEditComponent.updateElement({
-          isSaving: false,
-          isDeleting: false
-        });
-      };
-
-      this.#pointEditComponent.shake(resetFormState);
+    if (this.#mode === 'EDIT') {
+      this.#pointEditComponent.shake(() => {
+        this.#pointEditComponent.setAborting();
+      });
+    } else {
+      this.#pointComponent.shake();
     }
   }
 
@@ -122,25 +122,64 @@ export default class PointPresenter {
     this.#handleModeChange();
     replace(this.#pointEditComponent, this.#pointComponent);
     document.addEventListener('keydown', this.#escKeyDownHandler);
+    this.#mode = 'EDIT';
   }
 
   #replaceFormToPoint() {
+    if (!this.#pointEditComponent?.element?.parentElement || !this.#pointComponent?.element) {
+      return;
+    }
+
     replace(this.#pointComponent, this.#pointEditComponent);
     document.removeEventListener('keydown', this.#escKeyDownHandler);
+    this.#mode = null;
   }
 
   #escKeyDownHandler = (evt) => {
     if (isEscapeKey(evt)) {
       evt.preventDefault();
-      this.#replaceFormToPoint();
+      this.resetView();
     }
   };
+
+  #restoreOriginalState() {
+    this.#point = { ...this.#originalPoint };
+    const offers = this.#tripModel.getOffersById(this.#point.type, this.#point.offers);
+    const destination = this.#tripModel.getDestinationById(this.#point.destination);
+
+    const newPointComponent = new PointView({
+      point: this.#point,
+      offers: offers,
+      destination: destination,
+      onEditClick: this.#handleEditClick,
+      onFavoriteClick: this.#handleFavoriteClick
+    });
+
+    const newPointEditComponent = new PointEditFormView({
+      point: this.#point,
+      offers: this.#tripModel.getOffersByType(this.#point.type),
+      checkedOffers: offers,
+      destination: destination,
+      allDestinations: this.#tripModel.destinations,
+      allOffers: this.#tripModel.offers,
+      isNew: false,
+      onSubmit: this.#handleFormSubmit,
+      onClose: this.#handleCloseClick,
+      onDelete: this.#handleDeleteClick
+    });
+
+    replace(newPointComponent, this.#pointComponent);
+    this.#pointComponent = newPointComponent;
+    this.#pointEditComponent = newPointEditComponent;
+  }
 
   #handleEditClick = () => {
     this.#replacePointToForm();
   };
 
   #handleFavoriteClick = () => {
+    this.#uiBlocker.block();
+
     this.#handleDataChange(
       UserAction.UPDATE_POINT,
       'PATCH',
@@ -148,7 +187,11 @@ export default class PointPresenter {
         ...this.#point,
         isFavorite: !this.#point.isFavorite
       }
-    );
+    ).catch(() => {
+      this.setAborting();
+    }).finally(() => {
+      this.#uiBlocker.unblock();
+    });
   };
 
   #handleFormSubmit = async (point) => {
@@ -162,13 +205,14 @@ export default class PointPresenter {
       );
     } catch(err) {
       this.setAborting();
+      throw err;
     } finally {
       this.#uiBlocker.unblock();
     }
   };
 
   #handleCloseClick = () => {
-    this.#replaceFormToPoint();
+    this.resetView();
   };
 
   #handleDeleteClick = async () => {
@@ -182,6 +226,7 @@ export default class PointPresenter {
       );
     } catch(err) {
       this.setAborting();
+      throw err;
     } finally {
       this.#uiBlocker.unblock();
     }
