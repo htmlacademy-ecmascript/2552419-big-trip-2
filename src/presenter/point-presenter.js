@@ -110,8 +110,9 @@ export default class PointPresenter {
 
   setAborting() {
     if (this.#mode === 'EDIT') {
-      this.#pointEditComponent.shake();
-      this.#pointEditComponent.setAborting();
+      this.#pointEditComponent.shake(() => {
+        this.#pointEditComponent.setAborting();
+      });
     } else {
       this.#pointComponent.shake();
     }
@@ -204,6 +205,7 @@ export default class PointPresenter {
       );
     } catch(err) {
       this.setAborting();
+      throw err;
     } finally {
       this.#uiBlocker.unblock();
     }
@@ -224,6 +226,7 @@ export default class PointPresenter {
       );
     } catch(err) {
       this.setAborting();
+      throw err;
     } finally {
       this.#uiBlocker.unblock();
     }

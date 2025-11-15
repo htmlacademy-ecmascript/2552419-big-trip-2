@@ -221,8 +221,6 @@ export default class PointEditFormView extends AbstractStatefulView {
   }
 
   setAborting() {
-    this.#isAborting = true;
-
     const saveButton = this.element.querySelector('.event__save-btn');
     if (saveButton) {
       saveButton.textContent = 'Save';
@@ -232,10 +230,12 @@ export default class PointEditFormView extends AbstractStatefulView {
     const resetButton = this.element.querySelector('.event__reset-btn');
     if (resetButton) {
       resetButton.textContent = this.#isNew ? 'Cancel' : 'Delete';
+      resetButton.disabled = false;
     }
 
     this.#setFormElementsDisabled(false);
   }
+  
 
   #setFormElementsDisabled(disabled) {
     const inputs = this.element.querySelectorAll('input:not(.event__favorite-checkbox)');

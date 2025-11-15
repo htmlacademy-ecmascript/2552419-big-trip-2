@@ -157,6 +157,7 @@ export default class Presenter {
       this.#uiBlocker.unblock();
     }
   };
+  
 
   #handleNewPointClose = () => {
     if (this.#newPointPresenter) {
@@ -397,6 +398,7 @@ export default class Presenter {
       this.#uiBlocker.unblock();
     }
   };
+
 
   #handleModelEvent = (updateType, data) => {
     switch (updateType) {
