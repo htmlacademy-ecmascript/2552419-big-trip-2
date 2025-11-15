@@ -177,6 +177,8 @@ export default class PointPresenter {
   };
 
   #handleFavoriteClick = () => {
+    this.#uiBlocker.block();
+
     this.#handleDataChange(
       UserAction.UPDATE_POINT,
       'PATCH',
@@ -184,7 +186,11 @@ export default class PointPresenter {
         ...this.#point,
         isFavorite: !this.#point.isFavorite
       }
-    );
+    ).catch(() => {
+      this.setAborting();
+    }).finally(() => {
+      this.#uiBlocker.unblock();
+    });
   };
 
   #handleFormSubmit = async (point) => {

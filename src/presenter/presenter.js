@@ -51,11 +51,21 @@ export default class Presenter {
 
   init = async () => {
     this.#renderLoading();
+    this.#setNewEventButtonState(true);
+
     try {
       await this.#tripModel.init();
-      this.#isLoading = false;
-      this.#setNewEventButtonState(false);
-      this.#renderTripEvents();
+      if (this.#tripModel.hasError) {
+        this.#isLoading = false;
+        this.#isLoadingFailed = true;
+        this.#setNewEventButtonState(true);
+        this.#renderTripEvents();
+      } else {
+        this.#isLoading = false;
+        this.#isLoadingFailed = false;
+        this.#setNewEventButtonState(false);
+        this.#renderTripEvents();
+      }
     } catch (error) {
       this.#isLoading = false;
       this.#isLoadingFailed = true;
@@ -65,6 +75,10 @@ export default class Presenter {
   };
 
   createNewPoint = () => {
+    if (this.#isLoadingFailed) {
+      return;
+    }
+
     this.#currentFilter = 'everything';
     this.#currentSortType = SortType.DAY;
     this.#handleModeChange();
@@ -75,7 +89,7 @@ export default class Presenter {
 
   #setNewEventButtonState = (isDisabled) => {
     if (this.#newEventButton) {
-      this.#newEventButton.disabled = isDisabled;
+      this.#newEventButton.disabled = isDisabled || this.#isLoadingFailed;
     }
   };
 
@@ -132,7 +146,6 @@ export default class Presenter {
 
   #handleNewPointSubmit = async (point) => {
     this.#uiBlocker.block();
-
     this.#newPointPresenter.setSaving();
 
     try {
@@ -156,6 +169,14 @@ export default class Presenter {
   };
 
   #renderTripInfo = () => {
+    if (this.#isLoadingFailed) {
+      if (this.#tripInfoComponent) {
+        remove(this.#tripInfoComponent);
+        this.#tripInfoComponent = null;
+      }
+      return;
+    }
+
     const points = this.#tripModel.points;
 
     if (!points || points.length === 0) {
@@ -183,6 +204,14 @@ export default class Presenter {
   };
 
   #renderFilters = () => {
+    if (this.#isLoadingFailed) {
+      if (this.#filtersComponent) {
+        remove(this.#filtersComponent);
+        this.#filtersComponent = null;
+      }
+      return;
+    }
+
     const filters = getFiltersData(this.#tripModel.points);
 
     if (this.#filtersComponent) {
@@ -265,6 +294,10 @@ export default class Presenter {
   };
 
   #renderSorting = () => {
+    if (this.#isLoadingFailed) {
+      return;
+    }
+
     this.#sortingComponent = new SortingView({
       currentSortType: this.#currentSortType,
       onSortTypeChange: this.#handleSortTypeChange
@@ -304,6 +337,10 @@ export default class Presenter {
   };
 
   #getFilteredPoints = (filterType) => {
+    if (this.#isLoadingFailed || !this.#tripModel.points) {
+      return [];
+    }
+
     const allPoints = this.#tripModel.points;
 
     switch (filterType) {
@@ -338,29 +375,33 @@ export default class Presenter {
   };
 
   #handleViewAction = async (actionType, updateType, update) => {
+    this.#uiBlocker.block();
+
     try {
       switch (actionType) {
         case UserAction.UPDATE_POINT:
-          this.#pointPresenters.get(update.id).setSaving();
+          this.#pointPresenters.get(update.id)?.setSaving();
           await this.#tripModel.updatePoint(updateType, update);
           break;
         case UserAction.ADD_POINT:
           await this.#tripModel.addPoint(updateType, update);
           break;
         case UserAction.DELETE_POINT:
-          this.#pointPresenters.get(update.id).setDeleting();
+          this.#pointPresenters.get(update.id)?.setDeleting();
           await this.#tripModel.deletePoint(updateType, update);
           break;
       }
     } catch (err) {
-      this.#pointPresenters.get(update.id).setAborting();
+      this.#pointPresenters.get(update.id)?.setAborting();
+    } finally {
+      this.#uiBlocker.unblock();
     }
   };
 
   #handleModelEvent = (updateType, data) => {
     switch (updateType) {
       case 'PATCH':
-        this.#pointPresenters.get(data.id).init(data);
+        this.#pointPresenters.get(data.id)?.init(data);
         this.#updateTripInfo();
         this.#updateFilters();
         break;
@@ -378,6 +419,8 @@ export default class Presenter {
         break;
       case 'INIT':
         this.#isLoading = false;
+        this.#isLoadingFailed = false;
+        this.#setNewEventButtonState(false);
         this.#updateTripInfo();
         this.#updateFilters();
         this.#renderTripEvents();
@@ -385,6 +428,7 @@ export default class Presenter {
       case 'ERROR':
         this.#isLoading = false;
         this.#isLoadingFailed = true;
+        this.#setNewEventButtonState(true);
         this.#renderTripEvents();
         break;
     }
@@ -396,6 +440,7 @@ export default class Presenter {
     if (this.#newPointPresenter) {
       this.#newPointPresenter.destroy();
       this.#newPointPresenter = null;
+      this.#setNewEventButtonState(false);
     }
   };
 
