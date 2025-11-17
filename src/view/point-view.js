@@ -1,5 +1,6 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { DateMap, getDateDifference, huminazeDate } from '../util.js';
+import { DateMap, getDateDifference, humanizeDate } from '../util.js';
+import he from 'he';
 
 const createPointTemplate = (point, offers, destination) => {
   const { basePrice, isFavorite, type, dateFrom, dateTo } = point;
@@ -12,7 +13,7 @@ const createPointTemplate = (point, offers, destination) => {
       <ul class="event__selected-offers">
         ${offers.map((offer) =>
           `<li class="event__offer">
-            <span class="event__offer-title">${offer.title}</span>
+            <span class="event__offer-title">${he.encode(offer.title)}</span>
             &plus;&euro;&nbsp;
             <span class="event__offer-price">${offer.price}</span>
           </li>`).join('')}
@@ -23,16 +24,16 @@ const createPointTemplate = (point, offers, destination) => {
   return `
     <li class="trip-events__item">
       <div class="event">
-        <time class="event__date" datetime="${dateFrom}">${huminazeDate(dateFrom, DateMap.get('MonthDay'))}</time>
+        <time class="event__date" datetime="${dateFrom}">${humanizeDate(dateFrom, DateMap.get('MonthDay'))}</time>
         <div class="event__type">
           <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
         </div>
-        <h3 class="event__title">${type} ${destination.name}</h3>
+        <h3 class="event__title">${type} ${he.encode(destination.name)}</h3>
         <div class="event__schedule">
           <p class="event__time">
-            <time class="event__start-time" datetime="${dateFrom}">${huminazeDate(dateFrom, DateMap.get('HoursMinutes'))}</time>
+            <time class="event__start-time" datetime="${dateFrom}">${humanizeDate(dateFrom, DateMap.get('HoursMinutes'))}</time>
             &mdash;
-            <time class="event__end-time" datetime="${dateTo}">${huminazeDate(dateTo, DateMap.get('HoursMinutes'))}</time>
+            <time class="event__end-time" datetime="${dateTo}">${humanizeDate(dateTo, DateMap.get('HoursMinutes'))}</time>
           </p>
           <p class="event__duration">${getDateDifference(dateFrom, dateTo)}</p>
         </div>

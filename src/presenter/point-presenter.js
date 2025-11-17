@@ -2,7 +2,7 @@ import { render, replace, remove } from '../framework/render.js';
 import PointView from '../view/point-view.js';
 import PointEditFormView from '../view/point-edit-form-view.js';
 import { isEscapeKey } from '../util.js';
-import { UserAction, LOWER_LIMIT, UPPER_LIMIT } from '../const.js';
+import { UserAction, UpdateType, LOWER_LIMIT, UPPER_LIMIT } from '../const.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 
 export default class PointPresenter {
@@ -15,6 +15,8 @@ export default class PointPresenter {
   #pointComponent = null;
   #pointEditComponent = null;
   #point = null;
+  #originalPoint = null;
+  #mode = null;
 
   constructor(container, tripModel, onDataChange, onModeChange) {
     this.#container = container;
@@ -29,19 +31,14 @@ export default class PointPresenter {
 
   init(point) {
     this.#point = point;
+    this.#originalPoint = { ...point };
 
     const prevPointComponent = this.#pointComponent;
     const prevPointEditComponent = this.#pointEditComponent;
+    const wasEditing = this.#mode === 'EDIT';
 
     const offers = this.#tripModel.getOffersById(point.type, point.offers);
     const destination = this.#tripModel.getDestinationById(point.destination);
-    const allDestinations = this.#tripModel.destinations;
-    const allOffers = this.#tripModel.offers;
-
-    if (!destination) {
-      console.warn(`Destination not found for point ${point.id}`);
-      return;
-    }
 
     this.#pointComponent = new PointView({
       point: this.#point,
@@ -56,8 +53,8 @@ export default class PointPresenter {
       offers: this.#tripModel.getOffersByType(point.type),
       checkedOffers: offers,
       destination: destination,
-      allDestinations: allDestinations,
-      allOffers: allOffers,
+      allDestinations: this.#tripModel.destinations,
+      allOffers: this.#tripModel.offers,
       isNew: false,
       onSubmit: this.#handleFormSubmit,
       onClose: this.#handleCloseClick,
@@ -69,16 +66,25 @@ export default class PointPresenter {
       return;
     }
 
-    if (this.#container.contains(prevPointComponent.element)) {
-      replace(this.#pointComponent, prevPointComponent);
+    if (wasEditing) {
+      replace(this.#pointEditComponent, prevPointEditComponent);
+      document.addEventListener('keydown', this.#escKeyDownHandler);
+      this.#mode = 'EDIT';
+      this.resetState();
+    } else {
+      if (this.#container.contains(prevPointComponent.element)) {
+        replace(this.#pointComponent, prevPointComponent);
+      }
     }
 
-    if (this.#container.contains(prevPointEditComponent.element)) {
+    if (this.#container.contains(prevPointEditComponent.element) && !wasEditing) {
       replace(this.#pointEditComponent, prevPointEditComponent);
     }
 
     remove(prevPointComponent);
-    remove(prevPointEditComponent);
+    if (!wasEditing) {
+      remove(prevPointEditComponent);
+    }
   }
 
   destroy() {
@@ -88,79 +94,156 @@ export default class PointPresenter {
   }
 
   resetView() {
-    if (this.#pointEditComponent && this.#container.contains(this.#pointEditComponent.element)) {
-      this.#replaceFormToPoint();
+    if (this.#mode !== 'EDIT') {
+      return;
     }
+    this.#replaceFormToPoint();
+    this.#restoreOriginalState();
   }
 
   setSaving() {
-    if (this.#pointEditComponent) {
+    if (this.#mode === 'EDIT') {
       this.#pointEditComponent.setSaving();
     }
   }
 
   setDeleting() {
-    if (this.#pointEditComponent) {
+    if (this.#mode === 'EDIT') {
       this.#pointEditComponent.setDeleting();
     }
   }
 
   setAborting() {
-    if (this.#pointEditComponent) {
-      const resetFormState = () => {
-        this.#pointEditComponent.updateElement({
-          isSaving: false,
-          isDeleting: false
-        });
-      };
-
-      this.#pointEditComponent.shake(resetFormState);
+    if (this.#mode === 'EDIT') {
+      this.#pointEditComponent.setAborting();
+      this.#pointEditComponent.shake();
+    } else {
+      this.#pointComponent.shake();
     }
+  }
+
+  resetState() {
+    if (this.#mode === 'EDIT') {
+      this.#pointEditComponent.resetState();
+    }
+  }
+
+  isEditing() {
+    return this.#mode === 'EDIT';
+  }
+
+  restoreEditMode() {
+    if (this.#pointEditComponent && this.#pointComponent) {
+      replace(this.#pointEditComponent, this.#pointComponent);
+      document.addEventListener('keydown', this.#escKeyDownHandler);
+      this.#mode = 'EDIT';
+      this.resetState();
+    }
+  }
+
+  isDeleting() {
+    return this.#pointEditComponent && this.#pointEditComponent.isDeleting();
+  }
+
+  getEditComponent() {
+    return this.#pointEditComponent;
   }
 
   #replacePointToForm() {
     this.#handleModeChange();
     replace(this.#pointEditComponent, this.#pointComponent);
     document.addEventListener('keydown', this.#escKeyDownHandler);
+    this.#mode = 'EDIT';
   }
 
   #replaceFormToPoint() {
+    if (!this.#pointEditComponent?.element?.parentElement || !this.#pointComponent?.element) {
+      return;
+    }
+
     replace(this.#pointComponent, this.#pointEditComponent);
     document.removeEventListener('keydown', this.#escKeyDownHandler);
+    this.#mode = null;
   }
 
   #escKeyDownHandler = (evt) => {
     if (isEscapeKey(evt)) {
       evt.preventDefault();
-      this.#replaceFormToPoint();
+      this.resetView();
     }
   };
+
+  #restoreOriginalState() {
+    this.#point = { ...this.#originalPoint };
+    const offers = this.#tripModel.getOffersById(this.#point.type, this.#point.offers);
+    const destination = this.#tripModel.getDestinationById(this.#point.destination);
+
+    const newPointComponent = new PointView({
+      point: this.#point,
+      offers: offers,
+      destination: destination,
+      onEditClick: this.#handleEditClick,
+      onFavoriteClick: this.#handleFavoriteClick
+    });
+
+    const newPointEditComponent = new PointEditFormView({
+      point: this.#point,
+      offers: this.#tripModel.getOffersByType(this.#point.type),
+      checkedOffers: offers,
+      destination: destination,
+      allDestinations: this.#tripModel.destinations,
+      allOffers: this.#tripModel.offers,
+      isNew: false,
+      onSubmit: this.#handleFormSubmit,
+      onClose: this.#handleCloseClick,
+      onDelete: this.#handleDeleteClick
+    });
+
+    replace(newPointComponent, this.#pointComponent);
+    this.#pointComponent = newPointComponent;
+    this.#pointEditComponent = newPointEditComponent;
+  }
 
   #handleEditClick = () => {
     this.#replacePointToForm();
   };
 
   #handleFavoriteClick = () => {
+    this.#uiBlocker.block();
+
     this.#handleDataChange(
       UserAction.UPDATE_POINT,
-      'PATCH',
+      UpdateType.PATCH,
       {
         ...this.#point,
         isFavorite: !this.#point.isFavorite
       }
-    );
+    ).then((isSuccess) => {
+      if (!isSuccess) {
+        this.setAborting();
+      }
+    }).catch(() => {
+      this.setAborting();
+    }).finally(() => {
+      this.#uiBlocker.unblock();
+    });
   };
 
   #handleFormSubmit = async (point) => {
+    this.setSaving();
     this.#uiBlocker.block();
 
     try {
-      await this.#handleDataChange(
+      const isSuccess = await this.#handleDataChange(
         UserAction.UPDATE_POINT,
-        'MINOR',
+        UpdateType.MINOR,
         point
       );
-    } catch(err) {
+      if (!isSuccess) {
+        this.setAborting();
+        return;
+      }
+    } catch (err) {
       this.setAborting();
     } finally {
       this.#uiBlocker.unblock();
@@ -168,19 +251,23 @@ export default class PointPresenter {
   };
 
   #handleCloseClick = () => {
-    this.#replaceFormToPoint();
+    this.resetView();
   };
 
   #handleDeleteClick = async () => {
+    this.setDeleting();
     this.#uiBlocker.block();
 
     try {
-      await this.#handleDataChange(
+      const isSuccess = await this.#handleDataChange(
         UserAction.DELETE_POINT,
-        'MINOR',
+        UpdateType.MINOR,
         this.#point
       );
-    } catch(err) {
+      if (!isSuccess) {
+        this.setAborting();
+      }
+    } catch (err) {
       this.setAborting();
     } finally {
       this.#uiBlocker.unblock();

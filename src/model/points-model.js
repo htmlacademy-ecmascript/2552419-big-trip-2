@@ -3,6 +3,8 @@ import Observable from '../framework/observable.js';
 export default class PointsModel extends Observable {
   #points = [];
   #apiService = null;
+  #isInitialized = false;
+  #initializationError = null;
 
   constructor(apiService) {
     super();
@@ -13,21 +15,37 @@ export default class PointsModel extends Observable {
     return this.#points;
   }
 
+  get isInitialized() {
+    return this.#isInitialized;
+  }
+
+  get hasError() {
+    return this.#initializationError !== null;
+  }
+
   init = async () => {
     try {
       const points = await this.#apiService.getPoints();
       this.#points = points.map(this.#adaptToClient);
-    } catch (err) {
-      this.#points = [];
-      throw new Error('Failed to load points');
+      this.#isInitialized = true;
+      this.#initializationError = null;
+      return this.#points;
+    } catch (error) {
+      this.#isInitialized = false;
+      this.#initializationError = error;
+      throw error;
     }
   };
 
   updatePoint = async (updateType, update) => {
+    if (this.hasError) {
+      throw new Error('Cannot update point: model has initialization error');
+    }
+
     const index = this.#points.findIndex((point) => point.id === update.id);
 
     if (index === -1) {
-      throw new Error('Can\'t update unexisting point');
+      throw new Error('Can\'t update non-existent point');
     }
 
     try {
@@ -39,31 +57,35 @@ export default class PointsModel extends Observable {
         ...this.#points.slice(index + 1)
       ];
       this._notify(updateType, updatedPoint);
-    } catch (err) {
-      console.error('Failed to update point:', err);
-      throw new Error('Can\'t update point');
+    } catch (error) {
+      throw new Error('Can\'t update point: ' + error.message);
     }
   };
 
   addPoint = async (updateType, update) => {
+    if (this.hasError) {
+      throw new Error('Cannot add point: model has initialization error');
+    }
+
     try {
-      console.log('Adding point to server:', update);
       const response = await this.#apiService.addPoint(update);
       const newPoint = this.#adaptToClient(response);
       this.#points = [newPoint, ...this.#points];
       this._notify(updateType, newPoint);
-    } catch (err) {
-      console.error('Failed to add point:', err);
-      console.error('Point data that failed:', update);
-      throw new Error('Can\'t add point');
+    } catch (error) {
+      throw new Error('Can\'t add point: ' + error.message);
     }
   };
 
   deletePoint = async (updateType, update) => {
+    if (this.hasError) {
+      throw new Error('Cannot delete point: model has initialization error');
+    }
+
     const index = this.#points.findIndex((point) => point.id === update.id);
 
     if (index === -1) {
-      throw new Error('Can\'t delete unexisting point');
+      throw new Error('Can\'t delete non-existent point');
     }
 
     try {
@@ -73,9 +95,8 @@ export default class PointsModel extends Observable {
         ...this.#points.slice(index + 1)
       ];
       this._notify(updateType);
-    } catch (err) {
-      console.error('Failed to delete point:', err);
-      throw new Error('Can\'t delete point');
+    } catch (error) {
+      throw new Error('Can\'t delete point: ' + error.message);
     }
   };
 
