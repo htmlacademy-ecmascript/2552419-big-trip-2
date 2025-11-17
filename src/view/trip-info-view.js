@@ -15,12 +15,12 @@ const createTripInfoTemplate = (points, destinations, totalCost) => {
   const routeDestinations = [];
   const destinationMap = new Map();
 
-  destinations.forEach(dest => {
+  destinations.forEach((dest) => {
     destinationMap.set(dest.id, dest);
   });
 
   let lastDestination = null;
-  sortedPoints.forEach(point => {
+  sortedPoints.forEach((point) => {
     const destination = destinationMap.get(point.destination);
     if (destination && destination.name !== lastDestination) {
       routeDestinations.push(destination.name);
@@ -32,7 +32,7 @@ const createTripInfoTemplate = (points, destinations, totalCost) => {
   if (routeDestinations.length === 0) {
     routeTitle = '';
   } else if (routeDestinations.length <= MAX_DESTINATIONS_TO_SHOW) {
-    routeTitle = routeDestinations.map(dest => he.encode(dest)).join(' — ');
+    routeTitle = routeDestinations.map((dest) => he.encode(dest)).join(' — ');
   } else {
     routeTitle = `${he.encode(routeDestinations[0])} — ... — ${he.encode(routeDestinations[routeDestinations.length - 1])}`;
   }

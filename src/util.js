@@ -85,11 +85,11 @@ const sortPoints = (points, sortType) => {
 
 const filterPoints = {
   everything: (points) => points,
-  future: (points) => points.filter(point => new Date(point.dateFrom) > new Date()),
-  present: (points) => points.filter(point =>
+  future: (points) => points.filter((point) => new Date(point.dateFrom) > new Date()),
+  present: (points) => points.filter((point) =>
     new Date(point.dateFrom) <= new Date() && new Date(point.dateTo) >= new Date()
   ),
-  past: (points) => points.filter(point => new Date(point.dateTo) < new Date())
+  past: (points) => points.filter((point) => new Date(point.dateTo) < new Date())
 };
 
 const getFiltersData = (points) => {

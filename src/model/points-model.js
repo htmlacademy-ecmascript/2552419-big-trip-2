@@ -59,7 +59,7 @@ export default class PointsModel extends Observable {
       ];
       this._notify(updateType, updatedPoint);
     } catch (error) {
-      throw new Error('Can\'t update point: ' + error.message);
+      throw new Error(`Can't update point: ${error.message}`);
     }
   };
 
@@ -74,7 +74,7 @@ export default class PointsModel extends Observable {
       this.#points = [newPoint, ...this.#points];
       this._notify(updateType, newPoint);
     } catch (error) {
-      throw new Error('Can\'t add point: ' + error.message);
+      throw new Error(`Can't add point: ${error.message}`);
     }
   };
 
@@ -97,7 +97,7 @@ export default class PointsModel extends Observable {
       ];
       this._notify(updateType);
     } catch (error) {
-      throw new Error('Can\'t delete point: ' + error.message);
+      throw new Error(`Can't delete point: ${error.message}`);
     }
   };
 

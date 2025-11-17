@@ -26,10 +26,10 @@ const createFilterItemTemplate = (filter, isChecked, isDisabled) => {
 const createFiltersTemplate = (filters, currentFilter) => `
   <form class="trip-filters" action="#" method="get">
     ${filters.map((filter) => {
-      const isChecked = filter.type === currentFilter;
-      const isDisabled = filter.count === EMPTY_FILTER_COUNT;
-      return createFilterItemTemplate(filter, isChecked, isDisabled);
-    }).join('')}
+    const isChecked = filter.type === currentFilter;
+    const isDisabled = filter.count === EMPTY_FILTER_COUNT;
+    return createFilterItemTemplate(filter, isChecked, isDisabled);
+  }).join('')}
     <button class="visually-hidden" type="submit">Accept filter</button>
   </form>
 `;
