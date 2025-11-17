@@ -1,14 +1,15 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import duration from 'dayjs/plugin/duration';
-import { SortType } from './const.js';
+import { SortType, PAD_LENGTH, PAD_CHAR } from './const.js';
 
 dayjs.extend(utc);
 dayjs.extend(duration);
 
+const MIN_DURATION_VALUE = 0;
+
 const DateMap = new Map([
   ['MonthDay', 'MMM D'],
-  ['DayMonthYear', 'DD/MM/YY'],
   ['HoursMinutes', 'HH:mm'],
   ['DateTime', 'DD/MM/YY HH:mm'],
   ['DayMonth', 'DD MMM']
@@ -41,13 +42,13 @@ const getDateDifference = (start, end) => {
   const hours = durationObj.hours();
   const minutes = durationObj.minutes();
 
-  const formatNumber = (num) => num.toString().padStart(2, '0');
+  const formatNumber = (num) => num.toString().padStart(PAD_LENGTH, PAD_CHAR);
 
-  if (days > 0) {
+  if (days > MIN_DURATION_VALUE) {
     return `${formatNumber(days)}D ${formatNumber(hours)}H ${formatNumber(minutes)}M`;
   }
 
-  if (hours > 0) {
+  if (hours > MIN_DURATION_VALUE) {
     return `${formatNumber(hours)}H ${formatNumber(minutes)}M`;
   }
 
