@@ -531,7 +531,7 @@ export default class PointEditFormView extends AbstractStatefulView {
 
   #priceChangeHandler = (evt) => {
     evt.preventDefault();
-    const value = Math.max(MIN_PRICE, parseInt(evt.target.value) || MIN_PRICE);
+    const value = Math.max(MIN_PRICE, parseInt(evt.target.value, 10) || MIN_PRICE);
     this._setState({
       basePrice: value
     });

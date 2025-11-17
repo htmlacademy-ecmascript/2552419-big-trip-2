@@ -134,18 +134,16 @@ export default class BoardPresenter {
     };
   };
 
-  #createNewPoint = () => {
-    return {
-      id: null,
-      type: 'flight',
-      dateFrom: null,
-      dateTo: null,
-      destination: null,
-      basePrice: DEFAULT_BASE_PRICE,
-      isFavorite: false,
-      offers: []
-    };
-  };
+  #createNewPoint = () => ({
+    id: null,
+    type: 'flight',
+    dateFrom: null,
+    dateTo: null,
+    destination: null,
+    basePrice: DEFAULT_BASE_PRICE,
+    isFavorite: false,
+    offers: []
+  });
 
   #renderTripInfo = () => {
     if (this.#isLoadingFailed) {
@@ -302,13 +300,13 @@ export default class BoardPresenter {
 
     switch (filterType) {
       case 'future':
-        return allPoints.filter(point => new Date(point.dateFrom) > new Date());
+        return allPoints.filter((point) => new Date(point.dateFrom) > new Date());
       case 'present':
-        return allPoints.filter(point =>
+        return allPoints.filter((point) =>
           new Date(point.dateFrom) <= new Date() && new Date(point.dateTo) >= new Date()
         );
       case 'past':
-        return allPoints.filter(point => new Date(point.dateTo) < new Date());
+        return allPoints.filter((point) => new Date(point.dateTo) < new Date());
       default:
         return allPoints;
     }
