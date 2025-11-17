@@ -22,9 +22,7 @@ export default class OffersModel extends Observable {
     }
   };
 
-  getOffersByType = (type) => {
-    return this.#offers.find((offer) => offer.type === type) || { offers: [] };
-  };
+  getOffersByType = (type) => this.#offers.find((offer) => offer.type === type) || { offers: [] };
 
   getOffersById = (type, offersIds) => {
     const offersByType = this.getOffersByType(type);

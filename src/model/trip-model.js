@@ -74,7 +74,7 @@ export default class TripModel extends Observable {
     try {
       await this.#pointsModel.addPoint(updateType, update);
     } catch (error) {
-      throw new Error('Can\'t add point: ' + error.message);
+      throw new Error(`Can't add point: ${error.message}`);
     }
   };
 
@@ -86,7 +86,7 @@ export default class TripModel extends Observable {
     try {
       await this.#pointsModel.updatePoint(updateType, update);
     } catch (error) {
-      throw new Error('Can\'t update point: ' + error.message);
+      throw new Error(`Can't update point: ${error.message}`);
     }
   };
 
@@ -98,7 +98,7 @@ export default class TripModel extends Observable {
     try {
       await this.#pointsModel.deletePoint(updateType, update);
     } catch (error) {
-      throw new Error('Can\'t delete point: ' + error.message);
+      throw new Error(`Can't delete point: ${error.message}`);
     }
   };
 

@@ -22,11 +22,7 @@ export default class DestinationsModel extends Observable {
     }
   };
 
-  getDestinationById = (id) => {
-    return this.#destinations.find((destination) => destination.id === id);
-  };
+  getDestinationById = (id) => this.#destinations.find((destination) => destination.id === id);
 
-  getDestinationByName = (name) => {
-    return this.#destinations.find((destination) => destination.name === name);
-  };
+  getDestinationByName = (name) => this.#destinations.find((destination) => destination.name === name);
 }

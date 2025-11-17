@@ -11,12 +11,11 @@ const createPointTemplate = (point, offers, destination) => {
     ? `
       <h4 class="visually-hidden">Offers:</h4>
       <ul class="event__selected-offers">
-        ${offers.map((offer) =>
-          `<li class="event__offer">
-            <span class="event__offer-title">${he.encode(offer.title)}</span>
-            &plus;&euro;&nbsp;
-            <span class="event__offer-price">${offer.price}</span>
-          </li>`).join('')}
+        ${offers.map((offer) => `<li class="event__offer">
+          <span class="event__offer-title">${he.encode(offer.title)}</span>
+          &plus;&euro;&nbsp;
+          <span class="event__offer-price">${offer.price}</span>
+        </li>`).join('')}
       </ul>
     `
     : '';
