@@ -22,14 +22,19 @@ export default class UiBlocker {
   /** @type {number} Идентификатор таймера */
   #timerId;
 
+  /** @type {Function|null} Callback, вызываемый при разблокировке */
+  #onUnblock;
+
   /**
    * @param {Object} config Объект с настройками блокировщика
    * @param {number} config.lowerLimit Время до блокировки интерфейса в миллисекундах. Если вызвать метод unblock раньше, то интерфейс заблокирован не будет
    * @param {number} config.upperLimit Минимальное время блокировки в миллисекундах. Минимальная длительность блокировки
+   * @param {Function} [config.onUnblock] Callback, вызываемый при разблокировке
    */
-  constructor({lowerLimit, upperLimit}) {
+  constructor({lowerLimit, upperLimit, onUnblock}) {
     this.#lowerLimit = lowerLimit;
     this.#upperLimit = upperLimit;
+    this.#onUnblock = onUnblock || null;
 
     this.#element = document.createElement('div');
     this.#element.classList.add('ui-blocker');
@@ -51,15 +56,20 @@ export default class UiBlocker {
 
     if (duration < this.#lowerLimit) {
       clearTimeout(this.#timerId);
+      this.#onUnblock?.();
       return;
     }
 
     if (duration >= this.#upperLimit) {
       this.#disactivateBlocking();
+      this.#onUnblock?.();
       return;
     }
 
-    setTimeout(this.#disactivateBlocking, this.#upperLimit - duration);
+    setTimeout(() => {
+      this.#disactivateBlocking();
+      this.#onUnblock?.();
+    }, this.#upperLimit - duration);
   }
 
   /** Метод, добавляющий CSS-класс и обработчик */

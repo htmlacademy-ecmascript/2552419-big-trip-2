@@ -1,6 +1,9 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import { humanizeDate } from '../util.js';
+import { DEFAULT_TOTAL_COST } from '../const.js';
 import he from 'he';
+
+const MAX_DESTINATIONS_TO_SHOW = 3;
 
 const createTripInfoTemplate = (points, destinations, totalCost) => {
   if (!points || points.length === 0) {
@@ -28,7 +31,7 @@ const createTripInfoTemplate = (points, destinations, totalCost) => {
   let routeTitle;
   if (routeDestinations.length === 0) {
     routeTitle = '';
-  } else if (routeDestinations.length <= 3) {
+  } else if (routeDestinations.length <= MAX_DESTINATIONS_TO_SHOW) {
     routeTitle = routeDestinations.map(dest => he.encode(dest)).join(' — ');
   } else {
     routeTitle = `${he.encode(routeDestinations[0])} — ... — ${he.encode(routeDestinations[routeDestinations.length - 1])}`;
@@ -65,7 +68,7 @@ const createTripInfoTemplate = (points, destinations, totalCost) => {
 export default class TripInfoView extends AbstractView {
   #points = null;
   #destinations = null;
-  #totalCost = 0;
+  #totalCost = DEFAULT_TOTAL_COST;
 
   constructor({ points, destinations, totalCost }) {
     super();
@@ -76,9 +79,5 @@ export default class TripInfoView extends AbstractView {
 
   get template() {
     return createTripInfoTemplate(this.#points, this.#destinations, this.#totalCost);
-  }
-
-  removeElement() {
-    super.removeElement();
   }
 }

@@ -2,6 +2,7 @@ import Observable from '../framework/observable.js';
 import PointsModel from './points-model.js';
 import OffersModel from './offers-model.js';
 import DestinationsModel from './destinations-model.js';
+import { DEFAULT_TOTAL_COST } from '../const.js';
 
 export default class TripModel extends Observable {
   #pointsModel = null;
@@ -131,14 +132,14 @@ export default class TripModel extends Observable {
 
   calculateTotalCost = () => {
     if (this.hasError || !this.points) {
-      return 0;
+      return DEFAULT_TOTAL_COST;
     }
 
     return this.points.reduce((total, point) => {
       const pointOffers = this.getOffersById(point.type, point.offers);
-      const offersCost = pointOffers.reduce((sum, offer) => sum + offer.price, 0);
+      const offersCost = pointOffers.reduce((sum, offer) => sum + offer.price, DEFAULT_TOTAL_COST);
       return total + point.basePrice + offersCost;
-    }, 0);
+    }, DEFAULT_TOTAL_COST);
   };
 
   #handlePointsModelChange = (updateType, data) => {

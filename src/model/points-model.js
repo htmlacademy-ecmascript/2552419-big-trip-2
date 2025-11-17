@@ -1,4 +1,5 @@
 import Observable from '../framework/observable.js';
+import { NOT_FOUND_INDEX } from '../const.js';
 
 export default class PointsModel extends Observable {
   #points = [];
@@ -44,7 +45,7 @@ export default class PointsModel extends Observable {
 
     const index = this.#points.findIndex((point) => point.id === update.id);
 
-    if (index === -1) {
+    if (index === NOT_FOUND_INDEX) {
       throw new Error('Can\'t update non-existent point');
     }
 
@@ -84,7 +85,7 @@ export default class PointsModel extends Observable {
 
     const index = this.#points.findIndex((point) => point.id === update.id);
 
-    if (index === -1) {
+    if (index === NOT_FOUND_INDEX) {
       throw new Error('Can\'t delete non-existent point');
     }
 
