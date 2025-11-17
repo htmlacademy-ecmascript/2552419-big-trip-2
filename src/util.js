@@ -1,4 +1,3 @@
-// util.js
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import duration from 'dayjs/plugin/duration';
@@ -7,19 +6,34 @@ import { SortType } from './const.js';
 dayjs.extend(utc);
 dayjs.extend(duration);
 
-const DEFAULT_POINTS_COUNT = 0;
-const LOADING_DELAY = 1000;
-
 const DateMap = new Map([
   ['MonthDay', 'MMM D'],
   ['DayMonthYear', 'DD/MM/YY'],
   ['HoursMinutes', 'HH:mm'],
-  ['DateTime', 'DD/MM/YY HH:mm']
+  ['DateTime', 'DD/MM/YY HH:mm'],
+  ['DayMonth', 'DD MMM']
 ]);
 
-const huminazeDate = (date, format) => date ? dayjs(date).utc().format(format) : '';
+const humanizeDate = (date, format) => {
+  if (!date) {
+    return '';
+  }
+
+  const dateObj = dayjs(date);
+  let formatted = dateObj.format(format);
+
+  if (format === 'DD MMM') {
+    formatted = formatted.toUpperCase();
+  }
+
+  return formatted;
+};
 
 const getDateDifference = (start, end) => {
+  if (!start || !end) {
+    return '';
+  }
+
   const diff = dayjs(end).diff(dayjs(start));
   const durationObj = dayjs.duration(diff);
 
@@ -27,21 +41,18 @@ const getDateDifference = (start, end) => {
   const hours = durationObj.hours();
   const minutes = durationObj.minutes();
 
+  const formatNumber = (num) => num.toString().padStart(2, '0');
+
   if (days > 0) {
-    return `${days}D ${hours}H ${minutes}M`;
+    return `${formatNumber(days)}D ${formatNumber(hours)}H ${formatNumber(minutes)}M`;
   }
 
   if (hours > 0) {
-    return `${hours}H ${minutes}M`;
+    return `${formatNumber(hours)}H ${formatNumber(minutes)}M`;
   }
-  return `${minutes}M`;
+
+  return `${formatNumber(minutes)}M`;
 };
-
-const getRandomInteger = (min, max) =>
-  Math.floor(Math.random() * (Math.floor(max) - Math.ceil(min) + 1) + Math.ceil(min));
-
-const getRandomArrElem = (array) =>
-  array[Math.floor(Math.random() * array.length)];
 
 const isEscapeKey = (evt) => evt.key === 'Escape' || evt.key === 'Esc';
 
@@ -95,15 +106,11 @@ const getFiltersData = (points) => {
 };
 
 export {
-  getRandomArrElem,
-  getRandomInteger,
   DateMap,
   getDateDifference,
-  huminazeDate,
+  humanizeDate,
   isEscapeKey,
   filterPoints,
   getFiltersData,
-  sortPoints,
-  DEFAULT_POINTS_COUNT,
-  LOADING_DELAY
+  sortPoints
 };
