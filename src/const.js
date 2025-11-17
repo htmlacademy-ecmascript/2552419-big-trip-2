@@ -23,6 +23,12 @@ const UpdateType = {
 
 const LOWER_LIMIT = 350;
 const UPPER_LIMIT = 1000;
+const DEFAULT_BASE_PRICE = 0;
+const MIN_PRICE = 0;
+const PAD_LENGTH = 2;
+const PAD_CHAR = '0';
+const NOT_FOUND_INDEX = -1;
+const DEFAULT_TOTAL_COST = 0;
 
 export {
   POINT_TYPES,
@@ -30,5 +36,11 @@ export {
   UserAction,
   UpdateType,
   LOWER_LIMIT,
-  UPPER_LIMIT
+  UPPER_LIMIT,
+  DEFAULT_BASE_PRICE,
+  MIN_PRICE,
+  PAD_LENGTH,
+  PAD_CHAR,
+  NOT_FOUND_INDEX,
+  DEFAULT_TOTAL_COST
 };

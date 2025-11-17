@@ -1,9 +1,11 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { humanizeDate, isEscapeKey } from '../util.js';
-import { POINT_TYPES } from '../const.js';
+import { POINT_TYPES, MIN_PRICE, NOT_FOUND_INDEX } from '../const.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import he from 'he';
+
+const DELETE_COUNT = 1;
 
 const createPointEditFormTemplate = (point, offers, checkedOffers, destination, allDestinations, allOffers, isNew) => {
   const {
@@ -121,7 +123,7 @@ const createPointEditFormTemplate = (point, offers, checkedOffers, destination, 
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input event__input--price" id="event-price-1" type="number" name="event-price" value="${basePrice}" min="0" required>
+            <input class="event__input event__input--price" id="event-price-1" type="number" name="event-price" value="${basePrice}" min="${MIN_PRICE}" required>
           </div>
 
           <button class="event__save-btn btn btn--blue" type="submit" ${isFormDisabled ? 'disabled' : ''}>${saveButtonText}</button>
@@ -239,8 +241,21 @@ export default class PointEditFormView extends AbstractStatefulView {
     this.#updateControlsState();
   }
 
+  shake(callback) {
+    if (!this.element) {
+      return;
+    }
+    requestAnimationFrame(() => {
+      this.element.classList.add('shake');
+      setTimeout(() => {
+        this.element.classList.remove('shake');
+        callback?.();
+      }, 600);
+    });
+  }
+
   resetState() {
-    if (!this._state.isDisabled && !this._state.isSaving && !this._state.isDeleting) {
+    if (this.#isFormEnabled()) {
       return;
     }
 
@@ -250,6 +265,10 @@ export default class PointEditFormView extends AbstractStatefulView {
       isDeleting: false
     });
     this.#updateControlsState();
+  }
+
+  #isFormEnabled() {
+    return !this._state.isDisabled && !this._state.isSaving && !this._state.isDeleting;
   }
 
   #updateControlsState() {
@@ -325,6 +344,7 @@ export default class PointEditFormView extends AbstractStatefulView {
       const rollupButton = this.element.querySelector('.event__rollup-btn');
       if (rollupButton) {
         rollupButton.addEventListener('click', this.#rollupButtonClickHandler);
+        rollupButton.addEventListener('keydown', this.#rollupButtonKeydownHandler);
       }
     }
 
@@ -383,8 +403,12 @@ export default class PointEditFormView extends AbstractStatefulView {
   }
 
   #validateDates() {
-    const dateFrom = this.#dateFromPicker.selectedDates[0];
-    const dateTo = this.#dateToPicker.selectedDates[0];
+    if (!this.#dateFromPicker || !this.#dateToPicker) {
+      return;
+    }
+
+    const dateFrom = this.#dateFromPicker.selectedDates?.[0];
+    const dateTo = this.#dateToPicker.selectedDates?.[0];
 
     if (dateFrom && dateTo && dateTo < dateFrom) {
       this.#dateToPicker.setDate(dateFrom);
@@ -397,7 +421,7 @@ export default class PointEditFormView extends AbstractStatefulView {
   #onEscKeyDown(evt) {
     if (isEscapeKey(evt)) {
       evt.preventDefault();
-      if (!this._state.isDisabled && !this._state.isSaving && !this._state.isDeleting) {
+      if (this.#isFormEnabled()) {
         this.#handleClose();
       }
     }
@@ -451,7 +475,7 @@ export default class PointEditFormView extends AbstractStatefulView {
         this.#handleClose();
       }
     } else {
-      if (!this._state.isDisabled && !this._state.isSaving && !this._state.isDeleting) {
+      if (this.#isFormEnabled()) {
         this.setDeleting();
         this.#handleDelete();
       }
@@ -460,8 +484,17 @@ export default class PointEditFormView extends AbstractStatefulView {
 
   #rollupButtonClickHandler = (evt) => {
     evt.preventDefault();
-    if (!this._state.isDisabled && !this._state.isSaving && !this._state.isDeleting) {
+    if (this.#isFormEnabled()) {
       this.#handleClose();
+    }
+  };
+
+  #rollupButtonKeydownHandler = (evt) => {
+    if (evt.key === 'Enter') {
+      evt.preventDefault();
+      if (this.#isFormEnabled()) {
+        this.#handleClose();
+      }
     }
   };
 
@@ -498,7 +531,7 @@ export default class PointEditFormView extends AbstractStatefulView {
 
   #priceChangeHandler = (evt) => {
     evt.preventDefault();
-    const value = Math.max(0, parseInt(evt.target.value) || 0);
+    const value = Math.max(MIN_PRICE, parseInt(evt.target.value) || MIN_PRICE);
     this._setState({
       basePrice: value
     });
@@ -526,8 +559,8 @@ export default class PointEditFormView extends AbstractStatefulView {
       offers.push(offerId);
     } else {
       const index = offers.indexOf(offerId);
-      if (index !== -1) {
-        offers.splice(index, 1);
+      if (index !== NOT_FOUND_INDEX) {
+        offers.splice(index, DELETE_COUNT);
       }
     }
 

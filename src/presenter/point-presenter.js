@@ -17,6 +17,7 @@ export default class PointPresenter {
   #point = null;
   #originalPoint = null;
   #mode = null;
+  #pendingDestroy = false;
 
   constructor(container, tripModel, onDataChange, onModeChange) {
     this.#container = container;
@@ -29,6 +30,10 @@ export default class PointPresenter {
     });
   }
 
+  get pendingDestroy() {
+    return this.#pendingDestroy;
+  }
+
   init(point) {
     this.#point = point;
     this.#originalPoint = { ...point };
@@ -36,6 +41,12 @@ export default class PointPresenter {
     const prevPointComponent = this.#pointComponent;
     const prevPointEditComponent = this.#pointEditComponent;
     const wasEditing = this.#mode === 'EDIT';
+
+    const savedState = wasEditing && prevPointEditComponent ? {
+      isSaving: prevPointEditComponent._state?.isSaving || false,
+      isDeleting: prevPointEditComponent._state?.isDeleting || false,
+      isDisabled: prevPointEditComponent._state?.isDisabled || false
+    } : null;
 
     const offers = this.#tripModel.getOffersById(point.type, point.offers);
     const destination = this.#tripModel.getDestinationById(point.destination);
@@ -70,7 +81,17 @@ export default class PointPresenter {
       replace(this.#pointEditComponent, prevPointEditComponent);
       document.addEventListener('keydown', this.#escKeyDownHandler);
       this.#mode = 'EDIT';
-      this.resetState();
+      if (savedState) {
+        if (savedState.isSaving) {
+          this.#pointEditComponent.setSaving();
+        } else if (savedState.isDeleting) {
+          this.#pointEditComponent.setDeleting();
+        } else {
+          this.resetState();
+        }
+      } else {
+        this.resetState();
+      }
     } else {
       if (this.#container.contains(prevPointComponent.element)) {
         replace(this.#pointComponent, prevPointComponent);
@@ -132,21 +153,8 @@ export default class PointPresenter {
     return this.#mode === 'EDIT';
   }
 
-  restoreEditMode() {
-    if (this.#pointEditComponent && this.#pointComponent) {
-      replace(this.#pointEditComponent, this.#pointComponent);
-      document.addEventListener('keydown', this.#escKeyDownHandler);
-      this.#mode = 'EDIT';
-      this.resetState();
-    }
-  }
-
   isDeleting() {
     return this.#pointEditComponent && this.#pointEditComponent.isDeleting();
-  }
-
-  getEditComponent() {
-    return this.#pointEditComponent;
   }
 
   #replacePointToForm() {
@@ -165,13 +173,6 @@ export default class PointPresenter {
     document.removeEventListener('keydown', this.#escKeyDownHandler);
     this.#mode = null;
   }
-
-  #escKeyDownHandler = (evt) => {
-    if (isEscapeKey(evt)) {
-      evt.preventDefault();
-      this.resetView();
-    }
-  };
 
   #restoreOriginalState() {
     this.#point = { ...this.#originalPoint };
@@ -231,7 +232,6 @@ export default class PointPresenter {
 
   #handleFormSubmit = async (point) => {
     this.setSaving();
-    this.#uiBlocker.block();
 
     try {
       const isSuccess = await this.#handleDataChange(
@@ -239,14 +239,13 @@ export default class PointPresenter {
         UpdateType.MINOR,
         point
       );
-      if (!isSuccess) {
+      if (isSuccess) {
+        this.resetView();
+      } else {
         this.setAborting();
-        return;
       }
     } catch (err) {
       this.setAborting();
-    } finally {
-      this.#uiBlocker.unblock();
     }
   };
 
@@ -256,7 +255,6 @@ export default class PointPresenter {
 
   #handleDeleteClick = async () => {
     this.setDeleting();
-    this.#uiBlocker.block();
 
     try {
       const isSuccess = await this.#handleDataChange(
@@ -264,13 +262,20 @@ export default class PointPresenter {
         UpdateType.MINOR,
         this.#point
       );
-      if (!isSuccess) {
+      if (isSuccess) {
+        this.#pendingDestroy = true;
+      } else {
         this.setAborting();
       }
     } catch (err) {
       this.setAborting();
-    } finally {
-      this.#uiBlocker.unblock();
+    }
+  };
+
+  #escKeyDownHandler = (evt) => {
+    if (isEscapeKey(evt)) {
+      evt.preventDefault();
+      this.resetView();
     }
   };
 }
